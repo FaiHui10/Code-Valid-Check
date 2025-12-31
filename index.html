@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>建设行业规范版本有效性查询</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 20px; color: #333; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; border-radius: 10px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); overflow: hidden; }
+        header { background: #1a73e8; color: white; padding: 20px 25px; text-align: center; }
+        header h1 { font-size: 24px; margin-bottom: 5px; }
+        header .subtitle { opacity: 0.9; font-size: 13px; }
+        .main-content { padding: 20px 25px; }
+        .section { margin-bottom: 20px; background: #f8f9fa; border-radius: 8px; padding: 16px; border: 1px solid #dee2e6; }
+        .section-title { font-size: 16px; font-weight: 600; color: #2c3e50; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+        .websites-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; margin-top: 12px; }
+        .website-item { display: flex; align-items: center; padding: 10px 12px; background: white; border-radius: 6px; border: 2px solid #ddd; cursor: pointer; user-select: none; position: relative; transition: border-color 0.2s; }
+        .website-item.selected { border-color: #34a853; background: #f0f9f4; }
+        .website-item:hover { border-color: #1a73e8; }
+        .website-checkbox { margin-right: 10px; }
+        .website-info { flex: 1; }
+        .website-name { font-weight: 600; margin-bottom: 2px; }
+        .website-url { font-size: 11px; color: #666; word-break: break-all; }
+        textarea { width: 100%; min-height: 150px; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-family: inherit; resize: vertical; margin-top: 8px; }
+        .btn { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; margin-right: 10px; margin-bottom: 10px; }
+        .btn-success { background: #34a853; color: white; }
+        .btn-danger { background: #ea4335; color: white; }
+        .btn-primary { background: #1a73e8; color: white; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .progress-bar { height: 6px; background: #e0e0e0; border-radius: 3px; margin: 15px 0 10px; overflow: hidden; }
+        .progress-fill { height: 100%; background: #1a73e8; width: 0%; transition: width 0.3s; }
+        .log-container { background: #1e1e1e; color: #fff; border-radius: 6px; padding: 12px; font-family: 'Consolas', monospace; font-size: 12px; max-height: 200px; overflow-y: auto; margin-top: 15px; line-height: 1.4; }
+        .log-entry { margin-bottom: 4px; padding-bottom: 4px; border-bottom: 1px solid #333; }
+        .log-time { color: #999; margin-right: 8px; }
+        .log-success { color: #4caf50; }
+        .log-error { color: #f44336; }
+        .log-info { color: #2196f3; }
+        .log-warning { color: #ff9800; }
+        .results-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; display: none; }
+        .results-table.visible { display: table; }
+        .results-table th { background: #2c3e50; color: white; padding: 10px; text-align: left; }
+        .results-table td { padding: 8px 10px; border-bottom: 1px solid #eee; }
+        .match-indicator { display: inline-block; width: 18px; height: 18px; border-radius: 50%; text-align: center; line-height: 18px; font-size: 11px; margin-right: 5px; }
+        .match-exact { background: #4caf50; color: white; }
+        .match-partial { background: #ff9800; color: white; }
+        .loading-overlay { position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.7); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; color: white; }
+        .loading-overlay.active { display: flex; }
+        .spinner { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.3); border-top: 4px solid white; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .instructions { background: #e3f2fd; border-left: 4px solid #1a73e8; padding: 10px 12px; margin: 15px 0; font-size: 16px; border-radius: 4px; }
+        .summary-box { background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 6px; padding: 10px; margin-top: 10px; font-size: 13px; }
+        /* CORS提示样式优化 */
+        .cors-warning { background: #fef0f0; border-left: 4px solid #dc3545; padding: 12px 15px; margin: 15px 0; font-size: 13px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>建设行业规范版本有效性查核</h1>
+            <div class="subtitle">建设行业规范版本有效性查核 | 适配Microsoft Edge浏览器</div>
+        </header>
+
+        <div class="main-content">
+            <div class="section">
+                <div class="section-title">📡 选择查询网站</div>
+                <!-- CORS提示容器：初始化隐藏，检测到无扩展时显示 -->
+                <div id="corsTip" class="cors-warning" style="display: none;">
+					<strong>⚠️ 重要提示：</strong>
+					<p>未检测到Allow CORS扩展！为确保查询功能正常使用，请安装对应插件：</p>
+					<!--
+					<p>Chrome插件：<a href="https://chrome.google.com/webstore/detail/allow-cors-access-control/lhobafahddgcelffkeicbaginigeejlf" target="_blank" style="color: #1a73e8; text-decoration: underline;">Chrome 应用商店</a></p>
+					-->
+					<p>Edge插件：<a href="https://microsoftedge.microsoft.com/addons/detail/allow-cors-accesscontro/bhjepjpgngghppolkjdhckmnfphffdag" target="_blank" style="color: #1a73e8; text-decoration: underline;">Edge 扩展项商店</a></p>
+					<p>提示：安装后需启用扩展，并刷新当前页面</p>
+				</div>
+				<!-- 手动触发按钮 
+				<button class="btn" onclick="showCorsTipManually()" style="background:#ff9800;color:white;padding:4px 10px;font-size:12px;margin-top:10px;">
+					手动查看CORS扩展安装指引
+				</button>-->
+                <div class="instructions">
+                    <p><strong>使用说明：</strong><p> 
+                    <p>0. 由于GOOGLE CHROME浏览器的扩展商店不容易连接上，建议使用<strong style="color: red;">Microsoft EDGE浏览器运行本页面</strong>。
+					<p>1. 请确保浏览器的CORS扩展（如"Allow CORS: Access-Control-Allow-Origin"插件）已启用，并允许访问网址。 <p>
+					<p>2. 本网页可多网站并发查询规范版本的有效性，用户勾选下方网站进行查询，优先仅选择<strong>工程建设标准化信息网</strong>。<p>
+                    <p>3. <strong>双击下列</strong>网站区域，可在新窗口直接访问其官网。<p>
+                    <p>4. 对于每个关键词，每个网站最多返回10条结果，如果没有搜索到结果，用户自行查核。<p>
+                    <p>5. 地标、协会标之类的建议用户自行查核。<p>
+					<p>6. 可以尝试登录国家标准馆查询规范标准（批量查询需要账号）<a href="https://www.ndls.org.cn/" target="_blank" rel="noopener noreferrer">https://www.ndls.org.cn/</a></p>
+                </div>
+                <div class="websites-grid">
+                    <label class="website-item selected" id="websiteItem1" ondblclick="window.open('https://std.samr.gov.cn', '_blank')">
+                        <input type="checkbox" id="site1" class="website-checkbox" >
+                        <div class="website-info">
+                            <div class="website-name">国家标准网站</div>
+                            <div class="website-url">https://std.samr.gov.cn</div>
+                        </div>
+                    </label>
+                    <label class="website-item selected" id="websiteItem2" ondblclick="window.open('https://ebook.chinabuilding.com.cn', '_blank')">
+                        <input type="checkbox" id="site2" class="website-checkbox" >
+                        <div class="website-info">
+                            <div class="website-name">建筑标准网站</div>
+                            <div class="website-url">https://ebook.chinabuilding.com.cn</div>
+                        </div>
+                    </label>
+                    <label class="website-item selected" id="websiteItem3" ondblclick="window.open('https://www.ccsn.org.cn', '_blank')">
+                        <input type="checkbox" id="site3" class="website-checkbox" checked>
+                        <div class="website-info">
+                            <div class="website-name">工程建设标准化信息网</div>
+                            <div class="website-url">https://www.ccsn.org.cn</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">⌨️ 输入查询关键词</div>
+                <textarea id="keywordInput" placeholder="请输入关键词，多个关键词用逗号、分号或换行分隔&#10;例如：GB 50009, 建筑设计防火规范">防火规范</textarea>
+            </div>
+
+            <div class="section">
+                <button class="btn btn-success" onclick="startSearch()" id="startBtn">开始查询</button>
+                <button class="btn btn-danger" onclick="cancelSearch()" id="cancelBtn" disabled>取消</button>
+                <button class="btn btn-primary" onclick="exportResults()" id="exportBtn" disabled>导出CSV</button>
+                <button class="btn" onclick="clearAll()" style="background:#6c757d;color:white;">全部清除</button>
+
+                <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+                <div style="display:flex; justify-content:space-between; font-size:13px; margin-top:5px;">
+                    <span id="statusText">就绪</span>
+                    <span id="progressText">0%</span>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">📊 查询结果 <span style="font-weight:normal; margin-left:10px; color:#666;" id="resultsCount">共 0 条结果</span></div>
+                <div id="noExactMatchSummary" class="summary-box" style="display:none;">
+                    <strong>无精确匹配的关键词：</strong>
+                    <span id="noExactMatchList"></span>
+                </div>
+                <table class="results-table" id="resultsTable">
+                    <thead><tr><th>关键词</th><th>规范代号</th><th>规范名称</th><th>状态</th><th>查询状态</th><th>日期</th><th>来源</th><th>匹配</th></tr></thead>
+                    <tbody id="resultsBody"></tbody>
+                </table>
+            </div>
+
+            <div class="section">
+                <div class="section-title">📝 执行日志 <button class="btn" onclick="clearLog()" style="background:#6c757d;color:white;padding:4px 10px;font-size:12px;margin-left:auto;">清空</button></div>
+                <div class="log-container" id="logContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <div id="loadingText">正在查询，请稍候...</div>
+    </div>
+
+    <script>
+        // ==================== 全局配置与状态 ====================
+        let isSearching = false;
+        let searchCancelled = false;
+        let searchResults = [];
+        let selectedSites = ['site3'];
+        let allKeywords = []; // 存储所有查询关键词
+        let keywordsWithNoExactMatch = new Set(); // 存储没有精确匹配的关键词
+        let keywordsWithValidResults = new Set(); // 【新增】存储已有有效结果的关键词
+
+        // ==================== 核心工具函数 ====================
+        function addLog(msg, type='info') {
+            const logEl = document.getElementById('logContainer');
+            const time = new Date().toLocaleTimeString();
+            logEl.innerHTML += `<div class="log-entry"><span class="log-time">[${time}]</span><span class="log-${type}">${msg}</span></div>`;
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+        function updateProgress(percent, status) {
+            document.getElementById('progressFill').style.width = percent + '%';
+            document.getElementById('progressText').textContent = percent.toFixed(0) + '%';
+            document.getElementById('statusText').textContent = status;
+        }
+        function delay(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+
+        // 网站选择状态切换
+        document.querySelectorAll('.website-item').forEach(item => {
+            const checkbox = item.querySelector('input[type="checkbox"]');
+            item.addEventListener('click', (e) => {
+                if (e.target.type === 'checkbox') return; // 避免与复选框点击冲突
+                checkbox.checked = !checkbox.checked;
+                checkbox.dispatchEvent(new Event('change'));
+            });
+        });
+        document.querySelectorAll('.website-checkbox').forEach(cb => {
+            cb.addEventListener('change', function() {
+                const item = this.closest('.website-item');
+                item.classList.toggle('selected', this.checked);
+                const siteId = this.id;
+                if (this.checked && !selectedSites.includes(siteId)) {
+                    selectedSites.push(siteId);
+                } else if (!this.checked) {
+                    selectedSites = selectedSites.filter(id => id !== siteId);
+                }
+                addLog(`${this.nextElementSibling.querySelector('.website-name').textContent} ${this.checked ? '已选择' : '已取消'}`, 'info');
+            });
+        });
+
+        // ==================== 新增功能1：CORS扩展自动检测（国内可靠版） ====================
+		async function detectCorsExtension() {
+			try {
+				// 替换为国内可靠地址：百度favicon.ico（100%国内可访问，不支持跨域）
+				const testUrl = 'https://www.baidu.com/favicon.ico'; 
+				const response = await fetch(testUrl, {
+					method: 'HEAD', // 轻量HEAD请求，仅验证连接和跨域，不下载资源
+					mode: 'cors',   // 强制使用CORS模式，触发跨域检测
+					cache: 'no-cache',
+					signal: AbortSignal.timeout(5000) // 5秒超时，避免网络卡顿无响应
+				});
+				// 请求成功：说明有CORS扩展（百度本身不支持跨域，成功即代表扩展放行）
+				addLog('已检测到Allow CORS扩展（或浏览器CORS配置正常）', 'success');
+				return true;
+			} catch (error) {
+				// 优化错误判断逻辑：覆盖Chrome/Edge所有跨域相关错误提示（含中文/英文）
+				const errorMsg = (error.message || '').toLowerCase();
+				// 跨域错误关键字合集（兼容国内浏览器提示和英文提示）
+				const corsErrorKeywords = [
+					'cors',
+					'跨域',
+					'failed to fetch',
+					'access-control',
+					'blocked',
+					'net::err', // Chrome常见网络/跨域错误前缀
+					'not allowed',
+					'preflight' // 预检请求失败（跨域核心特征）
+				];
+				// 判断是否为跨域相关错误
+				const isCorsError = corsErrorKeywords.some(keyword => errorMsg.includes(keyword));
+				
+				if (isCorsError) {
+					addLog('未检测到Allow CORS扩展，将显示安装提示', 'warning');
+					document.getElementById('corsTip').style.display = 'block'; // 显示提示框
+					return false;
+				}
+				// 非跨域错误（如网络超时、服务器错误等，不强制提示）
+				addLog(`CORS检测异常（非扩展问题）：${error.message}`, 'info');
+				return true;
+			}
+		}
+
+        // ==================== 主要查询函数 ====================
+        async function startSearch() {
+            if (isSearching) return;
+            const keywordInput = document.getElementById('keywordInput').value.trim();
+            if (!keywordInput) { alert('请输入关键词'); return; }
+            if (selectedSites.length === 0) { alert('请至少选择一个网站'); return; }
+
+            const keywords = keywordInput.split(/[\n\t,;，；]+/).filter(k => k);
+            allKeywords = keywords; // 保存所有关键词
+            keywordsWithNoExactMatch.clear(); // 清空无匹配关键词列表
+            keywordsWithValidResults.clear(); // 【新增】清空已有有效结果的关键词列表
+            isSearching = true;
+            searchCancelled = false;
+            searchResults = [];
+
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('cancelBtn').disabled = false;
+            document.getElementById('exportBtn').disabled = true;
+            document.getElementById('loadingOverlay').classList.add('active');
+            document.getElementById('noExactMatchSummary').style.display = 'none';
+
+            document.getElementById('resultsBody').innerHTML = '';
+            document.getElementById('resultsTable').classList.remove('visible');
+            document.getElementById('resultsCount').textContent = '共 0 条结果';
+            document.getElementById('logContainer').innerHTML = '';
+            updateProgress(0, '开始初始化');
+
+            addLog(`开始查询，共 ${keywords.length} 个关键词`, 'success');
+            addLog(`选择的网站: ${selectedSites.map(id => document.getElementById(id).nextElementSibling.querySelector('.website-name').textContent).join(', ')}`, 'info');
+
+            try {
+                for (let i = 0; i < keywords.length; i++) {
+                    if (searchCancelled) break;
+                    const keyword = keywords[i];
+                    const progressPercent = ((i) / keywords.length) * 100;
+                    updateProgress(progressPercent, `查询: ${keyword}`);
+                    addLog(`查询关键词: ${keyword}`, 'info');
+
+                    let keywordHasExactMatch = false; // 记录当前关键词是否有精确匹配
+                    let keywordHasAnyValidResult = false; // 记录当前关键词是否有任意有效结果
+                    // 【新增】存储当前关键词的所有有效结果（用于后续过滤无结果记录）
+                    let currentKeywordValidResults = [];
+
+                    for (const siteId of selectedSites) {
+                        if (searchCancelled) break;
+                        // 【核心修改1】如果该关键词已有有效结果，跳过当前网站的无结果记录处理
+                        if (keywordHasAnyValidResult) {
+                            addLog(`  ${document.getElementById(siteId).nextElementSibling.querySelector('.website-name').textContent}：关键词已有有效结果，跳过无结果记录`, 'info');
+                            continue;
+                        }
+
+                        const siteName = document.getElementById(siteId).nextElementSibling.querySelector('.website-name').textContent;
+                        addLog(`  查询${siteName}...`, 'info');
+                        try {
+                            let results = [];
+                            if (siteId === 'site1') results = await querySite1(keyword);
+                            else if (siteId === 'site2') {
+                                // 对于建筑标准网站，分别查询国家标准和行业标准
+                                const nationalResults = await querySite2National(keyword);
+                                const industryResults = await querySite2Industry(keyword);
+                                results = [...nationalResults, ...industryResults];
+                                // 去重（避免同一结果出现在两种标准类型中）
+                                results = removeDuplicates(results);
+                            }
+                            else if (siteId === 'site3') results = await querySite3(keyword);
+
+                            if (results.length > 0) {
+                                // 标记关键词有有效结果和精确匹配
+                                const hasExactMatch = results.some(r => r.match === '●');
+                                if (hasExactMatch) keywordHasExactMatch = true;
+                                keywordHasAnyValidResult = true;
+                                keywordsWithValidResults.add(keyword); // 【新增】加入已有有效结果的关键词集合
+
+                                currentKeywordValidResults.push(...results); // 【新增】保存当前网站的有效结果
+                                addLog(`    找到 ${results.length} 条结果`, 'success');
+                            } else {
+                                // 【核心修改2】只有当关键词暂无任何有效结果时，才添加无结果记录
+                                addLog(`    未找到结果`, 'warning');
+                                // 构建无结果记录
+                                const noResultItem = {
+                                    keyword: keyword,
+                                    code: '-',
+                                    name: '-',
+                                    status: '-',
+                                    date: '-',
+                                    site: siteName,
+                                    match: '○',
+                                    queryStatus: '无搜索结果'
+                                };
+                                currentKeywordValidResults.push(noResultItem); // 暂存无结果记录（后续统一判断是否保留）
+                            }
+                            await delay(800); // 增加延迟避免请求过快
+                        } catch (err) {
+                            // 【核心修改3】只有当关键词暂无任何有效结果时，才添加查询异常记录
+                            addLog(`    ${siteName}查询失败: ${err.message}`, 'error');
+                            const errorResultItem = {
+                                keyword: keyword,
+                                code: '-',
+                                name: '-',
+                                status: '-',
+                                date: '-',
+                                site: siteName,
+                                match: '○',
+                                queryStatus: '查询异常'
+                            };
+                            if (!keywordHasAnyValidResult) {
+                                currentKeywordValidResults.push(errorResultItem);
+                            }
+                        }
+                    }
+                    
+                    // 【核心修改4】统一处理当前关键词的结果：只有当无任何有效结果时，才保留所有无结果/异常记录；否则只保留有效结果
+                    if (keywordHasAnyValidResult) {
+                        // 过滤：只保留有效结果（排除无搜索结果/查询异常的记录）
+                        const validOnlyResults = currentKeywordValidResults.filter(item => item.queryStatus === '有搜索结果');
+                        searchResults.push(...validOnlyResults);
+                        // 实时更新表格（只显示有效结果）
+                        updateResultsTable(validOnlyResults, false);
+                    } else {
+                        // 无任何有效结果，保留所有无结果/异常记录
+                        searchResults.push(...currentKeywordValidResults);
+                        updateResultsTable(currentKeywordValidResults, false);
+                    }
+                    
+                    // 如果当前关键词在所有网站中都没有精确匹配，添加到集合中
+                    if (!keywordHasExactMatch) {
+                        keywordsWithNoExactMatch.add(keyword);
+                    }
+                    
+                    updateProgress(((i+1) / keywords.length) * 100, `处理进度`);
+                    if (i < keywords.length - 1 && !searchCancelled) await delay(1200);
+                }
+
+                if (searchCancelled) {
+                    addLog('查询已取消', 'warning');
+                } else {
+                    updateProgress(100, '查询完成');
+                    const finalResults = deduplicateResults(searchResults);
+                    searchResults = finalResults;
+                    // 重新渲染完整表格（确保去重后的结果正确显示）
+                    updateResultsTable(finalResults, true);
+                    document.getElementById('resultsCount').textContent = `共 ${finalResults.length} 条结果`;
+
+                    // 更新无精确匹配关键词的显示
+                    updateNoExactMatchDisplay();
+
+                    if (finalResults.length > 0) {
+                        document.getElementById('exportBtn').disabled = false;
+                        addLog(`查询完成！共找到 ${finalResults.length} 条有效结果（已过滤冗余无结果记录）`, 'success');
+                    } else {
+                        addLog('查询完成，但未找到任何结果', 'warning');
+                    }
+                }
+            } catch (error) {
+                addLog(`查询过程发生错误: ${error.message}`, 'error');
+            } finally {
+                isSearching = false;
+                document.getElementById('startBtn').disabled = false;
+                document.getElementById('cancelBtn').disabled = true;
+                document.getElementById('loadingOverlay').classList.remove('active');
+                updateProgress(100, '就绪');
+            }
+        }
+
+        // ==================== 核心查询函数 ====================
+        async function querySite1(keyword) {
+            const url = `https://std.samr.gov.cn/search/stdPage?q=${encodeURIComponent(keyword)}&tid=&page=1&pageSize=10`;
+            try {
+                const response = await fetch(url, {
+                    headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
+                });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const html = await response.text();
+                return parseSite1HTML(html, keyword).slice(0, 10); // 限制10条结果
+            } catch (error) { throw error; }
+        }
+
+        // 查询国家标准
+        async function querySite2National(keyword) {
+            const url = `https://ebook.chinabuilding.com.cn/zbooklib/search?SiteID=1&contentType=book&fieldType=&zylxInnercode=GJBZ&sublibInnercode=&abolish=&SearchKey=${encodeURIComponent(keyword)}&SearchInner=&orderBy=&PageIndex=1&viewType=`;
+            
+            try {
+                const response = await fetch(url, {
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                        'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+                        'Referer': 'https://ebook.chinabuilding.com.cn/'
+                    }
+                });
+                
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                
+                const html = await response.text();
+                const results = parseSite2HTML(html, keyword).slice(0, 10); // 限制10条结果
+                
+                // 标记为国家标准
+                results.forEach(result => {
+                    result.site = '建筑标准网站(国家标准)';
+                    result.queryStatus = '有搜索结果';
+                    // 确保状态正确
+                    if (!result.status || result.status === '') {
+                        result.status = '现行';
+                    }
+                });
+                
+                return results;
+            } catch (error) { 
+                addLog(`国家标准查询失败: ${error.message}`, 'warning');
+                return [];
+            }
+        }
+
+        // 查询行业标准
+        async function querySite2Industry(keyword) {
+            const url = `https://ebook.chinabuilding.com.cn/zbooklib/search?SiteID=1&contentType=book&fieldType=&zylxInnercode=HYBZ&sublibInnercode=&abolish=&SearchKey=${encodeURIComponent(keyword)}&SearchInner=&orderBy=&PageIndex=1&viewType=`;
+            
+            try {
+                const response = await fetch(url, {
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                        'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+                        'Referer': 'https://ebook.chinabuilding.com.cn/'
+                    }
+                });
+                
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                
+                const html = await response.text();
+                const results = parseSite2HTML(html, keyword).slice(0, 10); // 限制10条结果
+                
+                // 标记为行业标准
+                results.forEach(result => {
+                    result.site = '建筑标准网站(行业标准)';
+                    result.queryStatus = '有搜索结果';
+                    // 确保状态正确
+                    if (!result.status || result.status === '') {
+                        result.status = '现行';
+                    }
+                });
+                
+                return results;
+            } catch (error) { 
+                addLog(`行业标准查询失败: ${error.message}`, 'warning');
+                return [];
+            }
+        }
+
+        async function querySite3(keyword) {
+            const url = 'https://www.ccsn.org.cn/newweb/api/StandardQuery.assx/queryStandard';
+            try {
+                const formData = new URLSearchParams();
+                formData.append('gjz', keyword);
+                formData.append('pageIndex', '1');
+                formData.append('pageSize', '10'); // 修改为10条
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+                    body: formData
+                });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const data = await response.json();
+                const results = parseSite3JSON(data, keyword);
+                // 为结果添加查询状态
+                results.forEach(result => {
+                    result.queryStatus = '有搜索结果';
+                });
+                return results;
+            } catch (error) { throw error; }
+        }
+
+        // ==================== 解析函数 ====================
+        function parseSite1HTML(html, keyword) {
+            const results = [];
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const items = doc.querySelectorAll('.panel.post');
+            let count = 0;
+            items.forEach(item => {
+                if (count >= 10) return; // 限制10条
+                try {
+                    const codeEl = item.querySelector('.en-code');
+                    const nameEl = item.querySelector('table.s-title a');
+                    const statusEl = item.querySelector('.s-status');
+                    const dateEl = item.querySelectorAll('div.panel-footer time')[1];
+                    const code = codeEl ? codeEl.textContent.trim() : '';
+                    let name = nameEl ? nameEl.textContent.trim() : '';
+                    if (code && name.includes(code)) name = name.replace(code, '').trim();
+                    results.push({
+                        keyword, code, name,
+                        status: statusEl ? statusEl.textContent.trim() : '现行',
+                        date: dateEl ? dateEl.textContent.trim() : '',
+                        site: '国家标准网站',
+                        match: isExactMatch(keyword, code, name),
+                        queryStatus: '有搜索结果'
+                    });
+                    count++;
+                } catch (e) {}
+            });
+            return results;
+        }
+
+		function parseSite2HTML(html, keyword) {
+			const results = [];
+			const parser = new DOMParser();
+			const doc = parser.parseFromString(html, 'text/html');
+			
+			// 直接找到搜索结果项（根据您提供的HTML结构）
+			const items = doc.querySelectorAll('div.img-search-list');
+			
+			let count = 0;
+			items.forEach(item => {
+				if (count >= 10) return;
+				
+				try {
+					// 1. 提取状态
+					let status = '现行';
+					const abolishSpan = item.querySelector('span.abolish');
+					const activeSpan = item.querySelector('span.active');
+					
+					if (abolishSpan && abolishSpan.textContent.includes('废止')) {
+						status = '废止';
+					} else if (activeSpan) {
+						status = activeSpan.textContent.trim() || '现行';
+					}
+					
+					// 2. 提取标题（最关键的部分）
+					const titleEl = item.querySelector('h4.search-tit a');
+					if (!titleEl) return;
+					
+					let rawTitle = titleEl.textContent.trim();
+					if (!rawTitle) return;
+					
+					// 3. 【核心修复】用冒号分隔符分割代号和名称
+					let code = '';
+					let name = '';
+					
+					// 定义有效的分隔符（只使用冒号，按全角、半角顺序）
+					const separators = ['：', ':'];
+					
+					// 找到第一个出现的有效分隔符位置
+					let splitIndex = -1;
+					let usedSeparator = '';
+					
+					for (const sep of separators) {
+						const index = rawTitle.indexOf(sep);
+						if (index > 0 && index < 50) { // 分隔符在合理位置
+							splitIndex = index;
+							usedSeparator = sep;
+							break;
+						}
+					}
+					
+					// 如果能分割
+					if (splitIndex > 0) {
+						code = rawTitle.substring(0, splitIndex).trim();
+						name = rawTitle.substring(splitIndex + usedSeparator.length).trim();
+						
+						// 清理名称中的多余分隔符
+						name = name.replace(/^[\s：:]+/, '').trim();
+					} else {
+						// 如果不能分割，整个作为名称
+						name = rawTitle;
+					}
+					
+					// 4. 提取实施日期
+					let date = '';
+					const dateElements = item.querySelectorAll('.bookDet .col-md-4');
+					dateElements.forEach(el => {
+						const text = el.textContent || '';
+						if (text.includes('实施日期：') || text.includes('实施日期:')) {
+							date = text.replace('实施日期：', '').replace('实施日期:', '').trim();
+						}
+					});
+					
+					// 5. 添加到结果
+					if (code || name) {
+						results.push({
+							keyword,
+							code: code || '',
+							name: name || '',
+							status: status,
+							date: date,
+							site: '建筑标准网站',
+							match: isExactMatch(keyword, code, name),
+							queryStatus: '有搜索结果'
+						});
+						count++;
+					}
+					
+				} catch (e) {
+					console.error('解析失败:', e);
+				}
+			});
+			
+			return results;
+		}
+
+        function parseSite3JSON(data, keyword) {
+            const results = [];
+            if (data && data.List) {
+                // 限制最多10条结果
+                const limitedList = data.List.slice(0, 10);
+                limitedList.forEach(item => {
+                    const code = item.StandardCode || '';
+                    const name = item.StandardCNName || '';
+                    let date = item.PerformDate || '';
+                    if (date.includes('T')) date = date.split('T')[0];
+                    if (code || name) {
+                        results.push({
+                            keyword, code, name,
+                            status: item.StandardState || '现行',
+                            date: date,
+                            site: '工程建设标准化信息网',
+                            match: isExactMatch(keyword, code, name),
+                            queryStatus: '有搜索结果'
+                        });
+                    }
+                });
+            }
+            return results;
+        }
+
+        function isExactMatch(keyword, code, name) {
+            if (!keyword) return '○';
+            const clean = (str) => str ? str.toLowerCase().replace(/\s+/g, '').replace(/[：:，,。.;；]/g, '') : '';
+            const kw = clean(keyword);
+            const c = clean(code);
+            const n = clean(name);
+            if (kw === c || kw === n) return '●';
+            if (c && c.includes(kw) || n && n.includes(kw)) return '○';
+            return '○';
+        }
+
+        // 去重函数（用于建筑标准网站的国家标准和行业标准结果去重）
+        function removeDuplicates(results) {
+            const uniqueResults = [];
+            const seen = new Set();
+            
+            results.forEach(result => {
+                const key = `${result.code}|${result.name}`;
+                if (!seen.has(key)) {
+                    seen.add(key);
+                    uniqueResults.push(result);
+                }
+            });
+            
+            return uniqueResults;
+        }
+
+        // ==================== 辅助与UI函数 ====================
+        function updateNoExactMatchDisplay() {
+            if (keywordsWithNoExactMatch.size > 0) {
+                const noMatchList = document.getElementById('noExactMatchList');
+                const summaryBox = document.getElementById('noExactMatchSummary');
+                
+                const keywordArray = Array.from(keywordsWithNoExactMatch);
+                noMatchList.textContent = keywordArray.join(', ');
+                summaryBox.style.display = 'block';
+                
+                addLog(`有 ${keywordsWithNoExactMatch.size} 个关键词未找到精确匹配: ${keywordArray.join(', ')}`, 'warning');
+            }
+        }
+
+        function deduplicateResults(results) {
+            const map = new Map();
+            results.forEach(result => {
+                const key = `${result.code}|${result.name}|${result.site}|${result.keyword}`;
+                if (!map.has(key)) {
+                    map.set(key, {...result, sources: [result.site]});
+                } else {
+                    const existing = map.get(key);
+                    if (!existing.sources.includes(result.site)) {
+                        existing.sources.push(result.site);
+                    }
+                    existing.site = existing.sources.join(', ');
+                }
+            });
+            return Array.from(map.values());
+        }
+
+        function updateResultsTable(results, replace=false) {
+            const tbody = document.getElementById('resultsBody');
+            const table = document.getElementById('resultsTable');
+            if (replace) tbody.innerHTML = '';
+            results.forEach(result => {
+                const row = document.createElement('tr');
+                const matchClass = result.match === '●' ? 'match-exact' : 'match-partial';
+                const matchHtml = `<span class="match-indicator ${matchClass}">${result.match}</span>`;
+                // 渲染新增的"查询状态"列
+                row.innerHTML = `
+                    <td>${result.keyword}</td>
+                    <td><strong>${result.code}</strong></td>
+                    <td>${result.name}</td>
+                    <td>${result.status}</td>
+                    <td>${result.queryStatus || '未知'}</td>
+                    <td>${result.date}</td>
+                    <td>${result.site}</td>
+                    <td>${matchHtml}</td>`;
+                tbody.appendChild(row);
+            });
+            if (tbody.children.length > 0) table.classList.add('visible');
+        }
+
+        function exportResults() {
+            if (searchResults.length === 0) return;
+            
+            // CSV数据行：新增"查询状态"列
+            const headers = ['关键词', '规范代号', '规范名称', '状态', '查询状态', '实施日期', '来源网站', '匹配'];
+            const csvRows = [
+                headers.join(','),
+                ...searchResults.map(r => [
+                    `"${r.keyword}"`, `"${r.code}"`, `"${r.name}"`, `"${r.status}"`, `"${r.queryStatus || '未知'}"`, `"${r.date}"`, `"${r.site}"`, `"${r.match}"`
+                ].join(','))
+            ];
+            
+            // 添加统计信息行
+            csvRows.push('');
+            csvRows.push('"查询统计信息"');
+            csvRows.push(`"查询关键词总数",${allKeywords.length}`);
+            csvRows.push(`"找到结果总数",${searchResults.length}`);
+            csvRows.push(`"有有效结果的关键词数",${keywordsWithValidResults.size}`); // 【新增】统计有效结果关键词数
+            
+            // 添加无精确匹配的关键词行
+            if (keywordsWithNoExactMatch.size > 0) {
+                csvRows.push('');
+                csvRows.push('"以下关键词未找到精确匹配"');
+                const keywordArray = Array.from(keywordsWithNoExactMatch);
+                // 如果关键词过多，可以分多行显示
+                for (let i = 0; i < keywordArray.length; i += 5) {
+                    const chunk = keywordArray.slice(i, i + 5);
+                    csvRows.push(`"${chunk.join(', ')}"`);
+                }
+            }
+            
+            const csv = csvRows.join('\n');
+            const blob = new Blob(['\ufeff' + csv], {type: 'text/csv;charset=utf-8;'});
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `规范查询_${new Date().toISOString().slice(0,10)}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(link.href);
+            addLog(`已导出 ${searchResults.length} 条结果到CSV文件，包含无匹配关键词统计`, 'success');
+        }
+
+        function cancelSearch() {
+            if (isSearching) {
+                searchCancelled = true;
+                addLog('正在取消查询...', 'warning');
+            }
+        }
+
+        function clearAll() {
+            document.getElementById('keywordInput').value = '';
+            document.getElementById('resultsBody').innerHTML = '';
+            document.getElementById('resultsTable').classList.remove('visible');
+            document.getElementById('resultsCount').textContent = '共 0 条结果';
+            document.getElementById('logContainer').innerHTML = '';
+            document.getElementById('noExactMatchSummary').style.display = 'none';
+            searchResults = [];
+            allKeywords = [];
+            keywordsWithNoExactMatch.clear();
+            keywordsWithValidResults.clear(); // 【新增】清空有效结果关键词集合
+            document.getElementById('exportBtn').disabled = true;
+            updateProgress(0, '就绪');
+            addLog('已清除所有内容', 'info');
+        }
+
+        function clearLog() {
+            document.getElementById('logContainer').innerHTML = '';
+            addLog('日志已清空', 'info');
+        }
+		
+		function showCorsTipManually() {
+			document.getElementById('corsTip').style.display = 'block';
+			addLog('用户手动触发CORS扩展安装指引', 'info');
+		}
+
+        // ==================== 初始化 ====================
+        document.addEventListener('DOMContentLoaded', function() {
+            addLog('建设行业规范版本有效性查询工具已就绪', 'success');
+            addLog('提示：● 表示完全匹配，○ 表示不完全匹配', 'info');
+            addLog('双击网站区域可直接访问官网', 'info');
+            addLog('每个网站最多返回10条结果', 'info');
+            addLog('建筑标准网站：分别搜索国家标准和行业标准', 'info');
+            addLog('优化：关键词有有效结果时，将过滤其他网站的无结果记录', 'info'); // 【新增】提示优化点
+            // 初始化时执行CORS扩展检测
+            detectCorsExtension();
+        });
+    </script>
+</body>
+</html>
