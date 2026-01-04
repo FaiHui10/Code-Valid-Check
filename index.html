@@ -49,6 +49,7 @@
         .spinner { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.3); border-top: 4px solid white; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .instructions { background: #e3f2fd; border-left: 4px solid #1a73e8; padding: 10px 12px; margin: 15px 0; font-size: 16px; border-radius: 4px; }
+		.center-img { display: block; margin: 0 auto; }
         .summary-box { background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 6px; padding: 10px; margin-top: 10px; font-size: 13px; }
         /* CORS提示样式优化 */
         .cors-warning { background: #fef0f0; border-left: 4px solid #dc3545; padding: 12px 15px; margin: 15px 0; font-size: 13px; border-radius: 4px; }
@@ -147,6 +148,7 @@
                 <div class="section-title">📝 执行日志 <button class="btn" onclick="clearLog()" style="background:#6c757d;color:white;padding:4px 10px;font-size:12px;margin-left:auto;">清空</button></div>
                 <div class="log-container" id="logContainer"></div>
             </div>
+			<p><img src="https://visitor-badge.laobi.icu/badge?page_id=faihui10.github.io/Code-Valid-Check" class="center-img"></p>
         </div>
     </div>
 
@@ -838,4 +840,5 @@
         });
     </script>
 </body>
+
 </html>
