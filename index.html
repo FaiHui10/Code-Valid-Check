@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>建设行业规范版本有效性查询</title>
+    <title>建设行业规范版本有效性查询（完整兼容版）</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 20px; color: #333; }
@@ -58,13 +58,13 @@
 <body>
     <div class="container">
         <header>
-            <h1>建设行业规范版本有效性查核</h1>
-            <div class="subtitle">建设行业规范版本有效性查核 | 适配Microsoft Edge浏览器</div>
+            <h1>建设行业规范版本有效性查核（完整兼容版）</h1>
+            <div class="subtitle">支持编号在前/在后拆分 | 精确匹配合并 | 适配Microsoft Edge浏览器</div>
         </header>
 
         <div class="main-content">
             <div class="section">
-                <div class="section-title">📡 选择查询网站</div>
+                <div class="section-title">📌 注意事项</div>
                 <div id="corsTip" class="cors-warning" style="display: none;">
 					<strong>⚠️ 重要提示：</strong>
 					<p>未检测到Allow CORS扩展！为确保查询功能正常使用，请安装对应插件：</p>
@@ -72,16 +72,17 @@
 					<p>提示：安装后需启用扩展，并刷新当前页面</p>
 				</div>
                 <div class="instructions">
-                    <p><strong>使用说明：</strong><p> 
-                    <p>0. 由于GOOGLE CHROME浏览器的扩展商店不容易连接上，建议使用<strong style="color: red;">Microsoft EDGE浏览器运行本页面</strong>。
-					<p>1. 请确保浏览器的CORS扩展（如"Allow CORS: Access-Control-Allow-Origin"插件）已启用，并允许访问网址。 <p>
-					<p>2. 本网页可多网站并发查询规范版本的有效性，用户勾选下方网站进行查询，优先仅选择<strong>工程建设标准化信息网</strong>。<p>
-                    <p>3. <strong>双击下列</strong>网站区域，可在新窗口直接访问其官网。<p>
-                    <p>4. 对于每个关键词，每个网站最多返回10条结果，如果没有搜索到结果，用户自行查核。<p>
-                    <p>5. 地标、协会标之类的建议用户自行查核。<p>
+                    <p><strong>使用说明：</strong></p> 
+                    <p>0. 由于GOOGLE CHROME浏览器的扩展商店不容易连接上，建议使用<strong style="color: red;">Microsoft EDGE浏览器运行本页面</strong>。</p>
+					<p>1. 请确保浏览器的CORS扩展（如"Allow CORS: Access-Control-Allow-Origin"插件）已启用，并允许访问网址。</p>
+					<p>2. 本网页可多网站并发查询规范版本的有效性，用户勾选下方网站进行查询，优先仅选择<strong>工程建设标准化信息网</strong>。</p>
+                    <p>3. <strong>双击下列</strong>网站区域，可在新窗口直接访问其官网。</p>
+                    <p>4. 对于每个关键词，每个网站最多返回10条结果，如果没有搜索到结果，用户自行查核。</p>
+                    <p>5. 地标、协会标之类的建议用户自行查核。</p>
 					<p>6. 可以尝试登录国家标准馆查询规范标准（批量查询需要账号）<a href="https://www.ndls.org.cn/" target="_blank" rel="noopener noreferrer">https://www.ndls.org.cn/</a></p>
-                    <p>7. <strong>智能拆分功能</strong>：支持"GB 50009-2012 建筑结构荷载规范"自动拆分为<span class="keyword-tag">GB 50009-2012</span>和<span class="keyword-tag">建筑结构荷载规范</span>分别搜索</p>
-                    <p>8. <strong>序号、书名号自动清理</strong>。</p>
+                    <p>7. <strong>智能拆分：</strong>支持"GB 50009-2012 建筑结构荷载规范"（编号在后）和"JGJ/T235-2011 建筑外墙防水工程技术规程"（编号在前）自动拆分</p>
+                    <p>8. <strong>精确匹配合并：</strong>若规范编号和名称均精确匹配，将自动合并为一条结果（蓝色高亮关键词，绿色高亮编号/名称）</p>
+                    <p>9. <strong>序号、书名号自动清理</strong>。</p>
                 </div>
                 <div class="websites-grid">
                     <label class="website-item selected" id="websiteItem1" ondblclick="window.open('https://std.samr.gov.cn', '_blank')">
@@ -110,7 +111,7 @@
 
             <div class="section">
                 <div class="section-title">⌨️ 输入查询关键词</div>
-                <textarea id="keywordInput" placeholder="请输入关键词，多个关键词用逗号、分号或换行分隔&#10;支持智能处理：&#10;1. 序号清理：（1）建筑与市政工程无障碍通用规范 GB55019-2021&#10;2. 智能拆分：GB 50009-2012 建筑结构荷载规范 → 拆分为"GB 50009-2012"和"建筑结构荷载规范"&#10;3. 书名号清理：《建筑设计防火规范》GB 50016 → 清理为"建筑设计防火规范 GB 50016"&#10;4. 支持无空格代号：GB55019-2021 也能正确识别&#10;5. 自动过滤纯序号行：（1）、（2）等不会被作为关键词搜索&#10;6. 支持带/T规范：建筑外墙防水工程技术规程 JGJ/T235-2011&#10;7. 支持DBJ/T规范：如 DBJ/T15-19 等地方推荐性标准&#10;8. 支持地方标准：广东省居住建筑节能设计标准 DBJ15-133-2018">建筑外墙防水工程技术规程 JGJ/T235-2011</textarea>
+                <textarea id="keywordInput" placeholder="请输入关键词，多个关键词用逗号、分号或换行分隔&#10;支持双向智能拆分：&#10;1. 编号在后：建筑结构荷载规范 GB 50009-2012 → 拆分为编号和名称&#10;2. 编号在前：JGJ/T235-2011 建筑外墙防水工程技术规程 → 拆分为编号和名称&#10;3. 序号清理：（1）建筑结构荷载规范 GB 50009-2021&#10;4. 书名号清理：《建筑设计防火规范》GB 50016&#10;5. 支持无空格代号：GB55019-2021&#10;6. 支持带/T规范：JGJ/T235-2011、DBJ/T15-19&#10;7. 支持地方标准：DBJ15-133-2018">JGJ/T235-2011 建筑外墙防水工程技术规程</textarea>
             </div>
 
             <div class="section">
@@ -127,13 +128,24 @@
             </div>
 
             <div class="section">
-                <div class="section-title">📊 查询结果 <span style="font-weight:normal; margin-left:10px; color:#666;" id="resultsCount">共 0 条结果</span></div>
+                <div class="section-title">📊 查询结果(匹配状态中绿点表示完全匹配，黄点表示不完全匹配) <span style="font-weight:normal; margin-left:10px; color:#666;" id="resultsCount">共 0 条结果</span></div>
                 <div id="noExactMatchSummary" class="summary-box" style="display:none;">
-                    <strong>无精确匹配的关键词：</strong>
+                    <strong>⚠️ 以下关键词未找到精确匹配：</strong>
                     <span id="noExactMatchList"></span>
                 </div>
                 <table class="results-table" id="resultsTable">
-                    <thead><tr><th>关键词</th><th>规范代号</th><th>规范名称</th><th>状态</th><th>查询状态</th><th>日期</th><th>来源</th><th>匹配</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th>关键词</th>
+                            <th>规范代号</th>
+                            <th>规范名称</th>
+                            <th>状态</th>
+                            <th>查询状态</th>
+                            <th>实施日期</th>
+                            <th>来源网站</th>
+                            <th>匹配状态</th>
+                        </tr>
+                    </thead>
                     <tbody id="resultsBody"></tbody>
                 </table>
             </div>
@@ -144,7 +156,6 @@
             </div>
 			<p><img src="https://visitor-badge.laobi.icu/badge?page_id=faihui10.github.io/Code-Valid-Check" class="center-img"></p>
         </div>
-
     </div>
 
     <div class="loading-overlay" id="loadingOverlay">
@@ -166,8 +177,10 @@
         // ==================== 核心工具函数 ====================
         function addLog(msg, type='info') {
             const logEl = document.getElementById('logContainer');
-            const time = new Date().toLocaleTimeString();
-            logEl.innerHTML += `<div class="log-entry"><span class="log-time">[${time}]</span><span class="log-${type}">${msg}</span></div>`;
+            const now = new Date();
+            const time = now.toLocaleTimeString('zh-CN');
+            const logHtml = `<div class="log-entry"><span class="log-time">[${time}]</span><span class="log-${type}">${msg}</span></div>`;
+            logEl.innerHTML += logHtml;
             logEl.scrollTop = logEl.scrollHeight;
         }
         
@@ -179,23 +192,93 @@
         
         function delay(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
+        // ==================== 新增：规范结果合并工具函数 ====================
+        function getStandardUniqueKey(code, name) {
+            const clean = (str) => {
+                if (!str) return '';
+                return str.toLowerCase().replace(/\s+/g, '').replace(/[：:，,。.;；\/\-]/g, '');
+            };
+            const cleanCode = clean(code);
+            const cleanName = clean(name);
+            return cleanCode || cleanName || Math.random().toString(36).substr(2, 8);
+        }
+
+        function mergeExactMatchResults(results) {
+            const standardGroup = new Map();
+            results.forEach(result => {
+                const uniqueKey = getStandardUniqueKey(result.code, result.name);
+                const isExact = result.match === '●';
+                
+                if (!standardGroup.has(uniqueKey)) {
+                    standardGroup.set(uniqueKey, {
+                        exactMatches: [],
+                        partialMatches: [],
+                        allResults: []
+                    });
+                }
+                
+                const group = standardGroup.get(uniqueKey);
+                group.allResults.push(result);
+                if (isExact) {
+                    group.exactMatches.push(result);
+                } else {
+                    group.partialMatches.push(result);
+                }
+            });
+            
+            const mergedResults = [];
+            standardGroup.forEach(group => {
+                const { exactMatches, partialMatches } = group;
+                
+                if (exactMatches.length >= 2) {
+                    let mergedResult = {...exactMatches[0]};
+                    exactMatches.forEach(item => {
+                        if (item.code && !mergedResult.code) mergedResult.code = item.code;
+                        if (item.name && !mergedResult.name) mergedResult.name = item.name;
+                        if (item.site && !mergedResult.site.includes(item.site)) {
+                            mergedResult.site = `${mergedResult.site}, ${item.site}`;
+                        }
+                        if (item.date && !mergedResult.date) mergedResult.date = item.date;
+                        if (item.status && item.status !== '现行' && mergedResult.status === '现行') {
+                            mergedResult.status = item.status;
+                        }
+                    });
+                    
+                    mergedResult.keyword = `${mergedResult.code} ${mergedResult.name}`.trim();
+                    mergedResult.isMerged = true;
+                    mergedResult.match = '●';
+                    mergedResult.queryStatus = '精确匹配合并结果';
+                    mergedResults.push(mergedResult);
+                } else if (exactMatches.length === 1) {
+                    exactMatches[0].isMerged = false;
+                    mergedResults.push(exactMatches[0]);
+                }
+                
+                partialMatches.forEach(item => {
+                    item.isMerged = false;
+                    mergedResults.push(item);
+                });
+            });
+            
+            return deduplicateResults(mergedResults);
+        }
+
         // ==================== 清理函数 ====================
         function cleanBookQuotes(text) {
             if (!text) return '';
             return text.replace(/[《》]/g, '').replace(/[<>]/g, '').trim();
         }
 
-        // ==================== 序号清理函数 ====================
         function cleanSequenceNumbers(text) {
             if (!text || !text.trim()) return '';
             
             const sequencePatterns = [
-                /^（\d+）\s*/,       // 全角括号数字，如（1）
-                /^\(\d+\)\s*/,       // 半角括号数字，如(1)
-                /^\d+[\.、）)\]\s\t]+\s*/, // 数字后跟点、顿号、括号等，如1. 、1、 1)
-                /^[①②③④⑤⑥⑦⑧⑨⑩]\s*/, // 中文圈数字
-                /^[⑴⑵⑶⑷⑸⑹⑺⑻⑼⑽]\s*/, // 带括号中文数字
-                /^[一二三四五六七八九十]+[、\.）)\s\t]\s*/, // 中文数字加标点
+                /^（\d+）\s*/,
+                /^\(\d+\)\s*/,
+                /^\d+[\.、）)\]\s\t]+\s*/,
+                /^[①②③④⑤⑥⑦⑧⑨⑩]\s*/,
+                /^[⑴⑵⑶⑷⑸⑹⑺⑻⑼⑽]\s*/,
+                /^[一二三四五六七八九十]+[、\.）)\s\t]\s*/,
             ];
             
             let cleaned = text.trim();
@@ -217,19 +300,15 @@
             }
             
             cleaned = cleaned.replace(/^[\t\s]+/, '').replace(/[\t\s]+$/, '').trim();
-            
             return cleaned;
         }
 
-        // ==================== 关键词智能拆分函数（全面支持/T规范） ====================
+        // ==================== 关键词智能拆分函数（兼容编号在前/在后两种模式） ====================
         function extractCodeAndName(input) {
-            if (!input || !input.trim()) {
-                return { code: '', name: '' };
-            }
-            
+            if (!input) return { code: '', name: '' };
             const originalInput = input;
             
-            // 1. 首先彻底清理序号
+            // 1. 首先彻底清理序号和书名号
             let cleanedInput = cleanSequenceNumbers(input);
             cleanedInput = cleanBookQuotes(cleanedInput).trim();
             
@@ -241,57 +320,34 @@
             // 3. 增强的规范代号模式（全面支持各种/T规范）
             const codePatterns = [
                 // ====== 国家标准 ======
-                // GB/T 推荐性国家标准（带/T）
-                /(GB\/T\s*\d+(?:[\.\-]\d+)*)/i, // 匹配 GB/T 12345-2012
-                /(GB\s*\/\s*T\s*\d+(?:[\.\-]\d+)*)/i, // 匹配 GB / T 12345（带空格）
-                
-                // GB 强制性国家标准
-                /(GB\s*\d{5}-\d{4})/i, // 匹配 GB 55019-2021 或 GB55019-2021
-                /(GB\s*\d+(?:[\.\-]\d+)*)/i, // 匹配 GB 50009-2012
+                /(GB\/T\s*\d+(?:[\.\-]\d+)*)/i,
+                /(GB\s*\/\s*T\s*\d+(?:[\.\-]\d+)*)/i,
+                /(GB\s*\d{5}-\d{4})/i,
+                /(GB\s*\d+(?:[\.\-]\d+)*)/i,
                 
                 // ====== 行业标准（带/T） ======
-                // JGJ/T 建筑工程行业推荐性标准
-                /(JGJ\/T\s*\d+(?:[\.\-]\d+)*)/i, // 匹配 JGJ/T235-2011
-                /(JGJ\s*\/\s*T\s*\d+(?:[\.\-]\d+)*)/i, // 匹配 JGJ / T 235
-                
-                // CJJ/T 城镇建设行业推荐性标准
-                /(CJJ\/T\s*\d+(?:[\.\-]\d+)*)/i, // 匹配 CJJ/T33-2005
+                /(JGJ\/T\s*\d+(?:[\.\-]\d+)*)/i,
+                /(JGJ\s*\/\s*T\s*\d+(?:[\.\-]\d+)*)/i,
+                /(CJJ\/T\s*\d+(?:[\.\-]\d+)*)/i,
                 /(CJJ\s*\/\s*T\s*\d+(?:[\.\-]\d+)*)/i,
-                
-                // DL/T 电力行业推荐性标准
                 /(DL\/T\s*\d+(?:[\.\-]\d+)*)/i,
                 /(DL\s*\/\s*T\s*\d+(?:[\.\-]\d+)*)/i,
-                
-                // NB/T 能源行业推荐性标准
                 /(NB\/T\s*\d+(?:[\.\-]\d+)*)/i,
                 /(NB\s*\/\s*T\s*\d+(?:[\.\-]\d+)*)/i,
-                
-                // SH/T 石油化工行业推荐性标准
                 /(SH\/T\s*\d+(?:[\.\-]\d+)*)/i,
                 /(SH\s*\/\s*T\s*\d+(?:[\.\-]\d+)*)/i,
-                
-                // SY/T 石油天然气行业推荐性标准
                 /(SY\/T\s*\d+(?:[\.\-]\d+)*)/i,
                 /(SY\s*\/\s*T\s*\d+(?:[\.\-]\d+)*)/i,
-                
-                // HG/T 化工行业推荐性标准
                 /(HG\/T\s*\d+(?:[\.\-]\d+)*)/i,
                 /(HG\s*\/\s*T\s*\d+(?:[\.\-]\d+)*)/i,
-                
-                // QB/T 轻工行业推荐性标准
                 /(QB\/T\s*\d+(?:[\.\-]\d+)*)/i,
                 /(QB\s*\/\s*T\s*\d+(?:[\.\-]\d+)*)/i,
-                
-                // JC/T 建材行业推荐性标准
                 /(JC\/T\s*\d+(?:[\.\-]\d+)*)/i,
                 /(JC\s*\/\s*T\s*\d+(?:[\.\-]\d+)*)/i,
                 
                 // ====== 地方标准（带/T） ======
-                // DBJ/T 地方建筑工程推荐性标准（重点新增）
-                /(DBJ\/T\s*\d+(?:[\.\-]\d+)*)/i, // 匹配 DBJ/T15-19
-                /(DBJ\s*\/\s*T\s*\d+(?:[\.\-]\d+)*)/i, // 匹配 DBJ / T 15-19
-                
-                // DB/T 地方推荐性标准
+                /(DBJ\/T\s*\d+(?:[\.\-]\d+)*)/i,
+                /(DBJ\s*\/\s*T\s*\d+(?:[\.\-]\d+)*)/i,
                 /(DB\/T\s*\d+(?:[\.\-]\d+)*)/i,
                 /(DB\s*\/\s*T\s*\d+(?:[\.\-]\d+)*)/i,
                 
@@ -311,21 +367,20 @@
                 /(YB\s*\d+(?:[\.\-]\d+)*)/i,
                 
                 // ====== 地方标准（不带/T） ======
-                /(DBJ\d+(?:[\.\-]\d+)*)/i, // 匹配 DBJ15-133-2018
-                /(DB\d+(?:[\.\-]\d+)*)/i,  // 匹配 DB11/XXX 等
-                /(DB\s*\d+(?:[\.\-]\d+)*)/i, // 匹配 DB 11/XXX
+                /(DBJ\d+(?:[\.\-]\d+)*)/i,
+                /(DB\d+(?:[\.\-]\d+)*)/i,
+                /(DB\s*\d+(?:[\.\-]\d+)*)/i,
                 
                 // ====== 其他标准 ======
-                /(Q\s*\/\s*[A-Za-z0-9]+)/i, // 企业标准
-                /(\d{4,})/, // 纯数字年份
+                /(Q\s*\/\s*[A-Za-z0-9]+)/i,
+                /(\d{4,})/,
             ];
             
             let code = '';
             let name = '';
             
-            // 4. 首先尝试匹配完整的规范代号（从字符串末尾开始匹配）
+            // 4. 尝试匹配完整的规范代号（支持两种顺序）
             for (const pattern of codePatterns) {
-                // 使用全局匹配找到所有可能的位置
                 const matches = [];
                 let match;
                 const regex = new RegExp(pattern.source, 'gi');
@@ -334,78 +389,72 @@
                     matches.push({
                         text: match[1],
                         index: match.index,
-                        length: match[0].length
+                        length: match[0].length,
+                        endIndex: match.index + match[0].length // 记录匹配结果结束位置
                     });
                 }
                 
-                // 如果有匹配，选择最可能的一个（通常是最后一个或最长的）
                 if (matches.length > 0) {
-                    // 优先选择靠近末尾的匹配
+                    // 优先选择靠近末尾、长度更长的匹配
                     matches.sort((a, b) => {
-                        // 首先按位置（从后往前优先）
                         const positionScore = (b.index - a.index);
-                        // 其次按长度（长的优先）
                         const lengthScore = (b.length - a.length);
                         return positionScore || lengthScore;
                     });
                     
                     const bestMatch = matches[0];
                     code = bestMatch.text.trim();
+                    const codeStartIndex = bestMatch.index;
+                    const codeEndIndex = bestMatch.endIndex;
+                    const fullInputLength = cleanedInput.length;
                     
-                    // 从字符串中提取名称
-                    name = cleanedInput.substring(0, bestMatch.index).trim();
+                    // 核心：双向提取名称（编号前/编号后）
+                    const nameBeforeCode = cleanedInput.substring(0, codeStartIndex).trim();
+                    const nameAfterCode = cleanedInput.substring(codeEndIndex, fullInputLength).trim();
                     
-                    // 清理名称
+                    // 优先选择非空名称，兼容两种输入顺序
+                    name = nameBeforeCode || nameAfterCode;
+                    
+                    // 清理名称格式
                     name = cleanBookQuotes(name);
                     name = cleanSequenceNumbers(name);
-                    
-                    // 如果名称结尾有标点，清理掉
                     name = name.replace(/[\s：:，,。.;；\-–—]+$/, '').trim();
                     
-                    // 确保名称中不包含代号
+                    // 移除名称中包含的代号
                     const codePatternEscaped = code.replace(/[-\/]/g, '\\$&');
                     if (name.includes(code)) {
                         name = name.replace(new RegExp(codePatternEscaped, 'gi'), '').trim();
                     }
                     
-                    // 特殊处理：如果名称以"标准"、"规范"等词开头，保留
-                    if (name && /^(标准|规范|规程|规定|技术规范|设计规范)/.test(name)) {
-                        // 保持原样
-                    } else if (name) {
-                        // 清理名称开头可能的多余字符
+                    // 清理名称开头多余字符
+                    if (name && !/^(标准|规范|规程|规定|技术规范|设计规范)/.test(name)) {
                         name = name.replace(/^[\s：:，,。.;；\-–—]+/, '').trim();
                     }
                     
                     if (code && name) {
                         return { code, name };
                     } else if (code && !name) {
-                        // 只有代号，可能整个字符串就是代号
                         return { code, name: code };
                     }
                 }
             }
             
-            // 5. 如果没有匹配到完整代号，尝试查找常见的分隔符
+            // 5. 无完整代号匹配时，按分隔符拆分
             if (!code) {
-                // 常见分隔符：空格、冒号等
-                // 规范代号通常包含数字和字母，且长度适中
                 const words = cleanedInput.split(/\s+/);
-                
-                // 从后往前查找可能的代号
                 for (let i = words.length - 1; i >= 0; i--) {
                     const word = words[i];
-                    
-                    // 检查是否符合规范代号的特征（增强版）
                     const isLikelyCode = (
-                        (word.length >= 5 && word.length <= 25) && // 长度适中（考虑带/T的代号）
-                        (/[A-Za-z]/.test(word) && /\d/.test(word)) && // 包含字母和数字
-                        (/^[A-Z]{2,}/.test(word) || /^[A-Z]{2,}\/[A-Z]/.test(word)) && // 以2个以上字母开头，或带/
-                        !/[^\w\-\/\.]/.test(word) // 只包含字母数字和-/.等合法字符
+                        (word.length >= 5 && word.length <= 25) &&
+                        (/[A-Za-z]/.test(word) && /\d/.test(word)) &&
+                        (/^[A-Z]{2,}/.test(word) || /^[A-Z]{2,}\/[A-Z]/.test(word)) &&
+                        !/[^\w\-\/\.]/.test(word)
                     );
                     
                     if (isLikelyCode) {
                         code = word;
-                        name = words.slice(0, i).join(' ').trim();
+                        const nameParts = words.filter((_, idx) => idx !== i);
+                        name = nameParts.join(' ').trim();
                         
                         if (name) {
                             name = cleanBookQuotes(name);
@@ -417,14 +466,13 @@
                 }
             }
             
-            // 6. 尝试匹配常见的标准后缀模式
+            // 6. 匹配常见后缀模式
             if (!code) {
-                // 匹配如 "XXX-XXXX" 或 "XXX/XXX-XXXX" 格式
                 const suffixPatterns = [
-                    /([A-Z]{2,}\/\w+-\d{4})/i, // 如 "JGJ/T235-2011"
-                    /([A-Z]{2,}\d+-\d{4})/i,    // 如 "DBJ15-133-2018"
-                    /([A-Z]{2,}-\d+-\d{4})/i,   // 如 "GB-50009-2012"
-                    /([A-Z]{2,}\d+)/i,          // 如 "JGJ130"
+                    /([A-Z]{2,}\/\w+-\d{4})/i,
+                    /([A-Z]{2,}\d+-\d{4})/i,
+                    /([A-Z]{2,}-\d+-\d{4})/i,
+                    /([A-Z]{2,}\d+)/i,
                 ];
                 
                 for (const pattern of suffixPatterns) {
@@ -444,7 +492,7 @@
                 }
             }
             
-            // 7. 如果还是没有找到，整个字符串作为名称
+            // 7. 最终兜底：整个字符串作为名称
             if (!code && cleanedInput) {
                 name = cleanedInput;
                 return { code, name };
@@ -462,59 +510,43 @@
                 const trimmed = keyword.trim();
                 if (!trimmed) return;
                 
-                const originalKeyword = trimmed;
-                
-                // 1. 直接检查是否是纯序号行
+                // 跳过纯序号行
                 const cleanedForCheck = trimmed.replace(/[\t\s]/g, '');
                 const pureSequencePattern = /^[（(]?\d+[）)\]]*$/;
-                
                 if (pureSequencePattern.test(cleanedForCheck)) {
                     addLog(`跳过纯序号行: "${trimmed}"`, 'info');
                     return;
                 }
                 
-                // 2. 尝试提取代号和名称
+                // 提取代号和名称（双向兼容）
                 const { code, name } = extractCodeAndName(trimmed);
-                
-                // 调试信息
-                console.log(`原始: "${trimmed}" -> 代号: "${code}", 名称: "${name}"`);
-                
-                // 3. 验证结果有效性
                 const isValidCode = code && !/^[（(]?\d+[）)\]\s\t]*$/.test(code.replace(/[\t\s]/g, ''));
                 const isValidName = name && !/^[（(]?\d+[）)\]\s\t]*$/.test(name.replace(/[\t\s]/g, '')) && name.trim().length > 0;
                 
-                // 4. 根据验证结果处理
+                // 拆分并添加关键词
                 if (isValidCode && isValidName && code !== name) {
                     processedKeywords.add(code);
                     processedKeywords.add(name);
-                    addLog(`检测到组合关键词 "${originalKeyword}"，已拆分为: "${code}" 和 "${name}"`, 'info');
+                    addLog(`检测到组合关键词 "${trimmed}"，已拆分为: "${code}" 和 "${name}"`, 'info');
                 } else if (isValidCode) {
                     processedKeywords.add(code);
-                    if (originalKeyword !== code) {
-                        addLog(`关键词 "${originalKeyword}" 提取为: "${code}"`, 'info');
-                    }
+                    if (trimmed !== code) addLog(`关键词 "${trimmed}" 提取为: "${code}"`, 'info');
                 } else if (isValidName) {
                     processedKeywords.add(name);
-                    if (originalKeyword !== name) {
-                        addLog(`关键词 "${originalKeyword}" 清理为: "${name}"`, 'info');
-                    }
+                    if (trimmed !== name) addLog(`关键词 "${trimmed}" 清理为: "${name}"`, 'info');
                 } else {
-                    // 都不有效，尝试基本清理
                     const cleaned = cleanSequenceNumbers(cleanBookQuotes(trimmed)).trim();
                     const cleanedForFinalCheck = cleaned.replace(/[\t\s]/g, '');
-                    
-                    if (cleaned && !/^[（(]?\d+[）)\]]*$/.test(cleanedForFinalCheck) && cleaned.length > 0) {
+                    if (cleaned && !/^[（(]?\d+[）)\]]*$/.test(cleanedForFinalCheck)) {
                         processedKeywords.add(cleaned);
-                        if (originalKeyword !== cleaned) {
-                            addLog(`关键词 "${originalKeyword}" 清理后为: "${cleaned}"`, 'info');
-                        }
-                    } else if (cleaned) {
-                        addLog(`跳过无效内容: "${cleaned}"`, 'info');
+                        if (trimmed !== cleaned) addLog(`关键词 "${trimmed}" 清理后为: "${cleaned}"`, 'info');
+                    } else {
+                        addLog(`跳过无效内容: "${trimmed}"`, 'info');
                     }
                 }
             });
             
-            // 最终过滤
+            // 最终过滤有效关键词
             const result = Array.from(processedKeywords).filter(k => {
                 const cleaned = k.replace(/[\t\s]/g, '');
                 const isSequence = /^[（(]?\d+[）)\]]*$/.test(cleaned);
@@ -564,18 +596,11 @@
 			} catch (error) {
 				const errorMsg = (error.message || '').toLowerCase();
 				const corsErrorKeywords = [
-					'cors',
-					'跨域',
-					'failed to fetch',
-					'access-control',
-					'blocked',
-					'net::err',
-					'not allowed',
-					'preflight'
+					'cors', '跨域', 'failed to fetch', 'access-control',
+					'blocked', 'net::err', 'not allowed', 'preflight'
 				];
 				
 				const isCorsError = corsErrorKeywords.some(keyword => errorMsg.includes(keyword));
-				
 				if (isCorsError) {
 					addLog('未检测到Allow CORS扩展，将显示安装提示', 'warning');
 					document.getElementById('corsTip').style.display = 'block';
@@ -591,15 +616,16 @@
         async function startSearch() {
             if (isSearching) return;
             const keywordInput = document.getElementById('keywordInput').value.trim();
-            if (!keywordInput) { alert('请输入关键词'); return; }
-            if (selectedSites.length === 0) { alert('请至少选择一个网站'); return; }
+            if (!keywordInput) { alert('请输入查询关键词！'); return; }
+            if (selectedSites.length === 0) { alert('请至少选择一个查询网站！'); return; }
 
             const keywords = parseKeywords(keywordInput);
             if (keywords.length === 0) {
-                alert('未找到有效的查询关键词！请检查输入内容。');
+                alert('未找到有效的查询关键词，请检查输入内容！');
                 return;
             }
             
+            // 初始化查询状态
             allKeywords = keywords;
             keywordsWithNoExactMatch.clear();
             keywordsWithValidResults.clear();
@@ -607,16 +633,15 @@
             searchCancelled = false;
             searchResults = [];
 
+            // 更新页面UI状态
             document.getElementById('startBtn').disabled = true;
             document.getElementById('cancelBtn').disabled = false;
             document.getElementById('exportBtn').disabled = true;
             document.getElementById('loadingOverlay').classList.add('active');
             document.getElementById('noExactMatchSummary').style.display = 'none';
-
             document.getElementById('resultsBody').innerHTML = '';
             document.getElementById('resultsTable').classList.remove('visible');
             document.getElementById('resultsCount').textContent = '共 0 条结果';
-            document.getElementById('logContainer').innerHTML = '';
             updateProgress(0, '开始初始化');
 
             addLog(`开始查询，共 ${keywords.length} 个有效关键词`, 'success');
@@ -628,23 +653,24 @@
                     const keyword = keywords[i];
                     const progressPercent = ((i) / keywords.length) * 100;
                     
-                    updateProgress(progressPercent, `查询: ${keyword}`);
+                    updateProgress(progressPercent, `查询中：${keyword}`);
                     addLog(`查询关键词: ${keyword}`, 'info');
 
                     let keywordHasExactMatch = false;
                     let keywordHasAnyValidResult = false;
                     let currentKeywordValidResults = [];
 
+                    // 遍历选中的网站进行查询
                     for (const siteId of selectedSites) {
                         if (searchCancelled) break;
-                        
                         if (keywordHasAnyValidResult) {
                             addLog(`  ${document.getElementById(siteId).nextElementSibling.querySelector('.website-name').textContent}：关键词已有有效结果，跳过无结果记录`, 'info');
                             continue;
                         }
 
                         const siteName = document.getElementById(siteId).nextElementSibling.querySelector('.website-name').textContent;
-                        addLog(`  查询${siteName}...`, 'info');
+                        addLog(`  正在查询${siteName}...`, 'info');
+                        
                         try {
                             let results = [];
                             if (siteId === 'site1') results = await querySite1(keyword);
@@ -663,9 +689,9 @@
                                 keywordsWithValidResults.add(keyword);
 
                                 currentKeywordValidResults.push(...results);
-                                addLog(`    找到 ${results.length} 条结果`, 'success');
+                                addLog(`    找到 ${results.length} 条有效结果`, 'success');
                             } else {
-                                addLog(`    未找到结果`, 'warning');
+                                addLog(`    未找到相关结果`, 'warning');
                                 const noResultItem = {
                                     keyword: keyword,
                                     code: '-',
@@ -678,7 +704,6 @@
                                 };
                                 currentKeywordValidResults.push(noResultItem);
                             }
-                            await delay(800);
                         } catch (err) {
                             addLog(`    ${siteName}查询失败: ${err.message}`, 'error');
                             const errorResultItem = {
@@ -691,12 +716,11 @@
                                 match: '○',
                                 queryStatus: '查询异常'
                             };
-                            if (!keywordHasAnyValidResult) {
-                                currentKeywordValidResults.push(errorResultItem);
-                            }
+                            if (!keywordHasAnyValidResult) currentKeywordValidResults.push(errorResultItem);
                         }
                     }
                     
+                    // 收集查询结果并更新表格
                     if (keywordHasAnyValidResult) {
                         const validOnlyResults = currentKeywordValidResults.filter(item => item.queryStatus === '有搜索结果');
                         searchResults.push(...validOnlyResults);
@@ -706,34 +730,35 @@
                         updateResultsTable(currentKeywordValidResults, false);
                     }
                     
-                    if (!keywordHasExactMatch) {
-                        keywordsWithNoExactMatch.add(keyword);
-                    }
-                    
+                    if (!keywordHasExactMatch) keywordsWithNoExactMatch.add(keyword);
                     updateProgress(((i+1) / keywords.length) * 100, `处理进度`);
                     if (i < keywords.length - 1 && !searchCancelled) await delay(1200);
                 }
 
+                // 处理查询结果（去重+合并精确匹配）
                 if (searchCancelled) {
-                    addLog('查询已取消', 'warning');
+                    addLog('查询已被用户取消', 'warning');
                 } else {
-                    updateProgress(100, '查询完成');
-                    const finalResults = deduplicateResults(searchResults);
+                    updateProgress(100, '查询完成，正在合并精确匹配结果...');
+                    let finalResults = deduplicateResults(searchResults);
+                    finalResults = mergeExactMatchResults(finalResults);
                     searchResults = finalResults;
+                    
+                    // 更新最终结果展示
                     updateResultsTable(finalResults, true);
                     document.getElementById('resultsCount').textContent = `共 ${finalResults.length} 条结果`;
-
                     updateNoExactMatchDisplay();
 
                     if (finalResults.length > 0) {
                         document.getElementById('exportBtn').disabled = false;
-                        addLog(`查询完成！共找到 ${finalResults.length} 条有效结果`, 'success');
+                        const mergedCount = finalResults.filter(r => r.isMerged).length;
+                        addLog(`查询完成！共找到 ${finalResults.length} 条有效结果（含 ${mergedCount} 条精确匹配合并结果）`, 'success');
                     } else {
-                        addLog('查询完成，但未找到任何结果', 'warning');
+                        addLog('查询完成，但未找到任何有效结果', 'warning');
                     }
                 }
             } catch (error) {
-                addLog(`查询过程发生错误: ${error.message}`, 'error');
+                addLog(`查询过程发生异常: ${error.message}`, 'error');
             } finally {
                 isSearching = false;
                 document.getElementById('startBtn').disabled = false;
@@ -743,7 +768,7 @@
             }
         }
 
-        // ==================== 核心查询函数 ====================
+        // ==================== 网站查询函数 ====================
         async function querySite1(keyword) {
             const url = `https://std.samr.gov.cn/search/stdPage?q=${encodeURIComponent(keyword)}&tid=&page=1&pageSize=10`;
             try {
@@ -758,30 +783,22 @@
 
         async function querySite2National(keyword) {
             const url = `https://ebook.chinabuilding.com.cn/zbooklib/search?SiteID=1&contentType=book&fieldType=&zylxInnercode=GJBZ&sublibInnercode=&abolish=&SearchKey=${encodeURIComponent(keyword)}&SearchInner=&orderBy=&PageIndex=1&viewType=`;
-            
             try {
                 const response = await fetch(url, {
                     headers: {
                         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
                         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                        'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
                         'Referer': 'https://ebook.chinabuilding.com.cn/'
                     }
                 });
-                
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                
                 const html = await response.text();
                 const results = parseSite2HTML(html, keyword).slice(0, 10);
-                
                 results.forEach(result => {
                     result.site = '建筑标准网站(国家标准)';
                     result.queryStatus = '有搜索结果';
-                    if (!result.status || result.status === '') {
-                        result.status = '现行';
-                    }
+                    if (!result.status) result.status = '现行';
                 });
-                
                 return results;
             } catch (error) { 
                 addLog(`国家标准查询失败: ${error.message}`, 'warning');
@@ -791,30 +808,22 @@
 
         async function querySite2Industry(keyword) {
             const url = `https://ebook.chinabuilding.com.cn/zbooklib/search?SiteID=1&contentType=book&fieldType=&zylxInnercode=HYBZ&sublibInnercode=&abolish=&SearchKey=${encodeURIComponent(keyword)}&SearchInner=&orderBy=&PageIndex=1&viewType=`;
-            
             try {
                 const response = await fetch(url, {
                     headers: {
                         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
                         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                        'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
                         'Referer': 'https://ebook.chinabuilding.com.cn/'
                     }
                 });
-                
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                
                 const html = await response.text();
                 const results = parseSite2HTML(html, keyword).slice(0, 10);
-                
                 results.forEach(result => {
                     result.site = '建筑标准网站(行业标准)';
                     result.queryStatus = '有搜索结果';
-                    if (!result.status || result.status === '') {
-                        result.status = '现行';
-                    }
+                    if (!result.status) result.status = '现行';
                 });
-                
                 return results;
             } catch (error) { 
                 addLog(`行业标准查询失败: ${error.message}`, 'warning');
@@ -837,20 +846,19 @@
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const data = await response.json();
                 const results = parseSite3JSON(data, keyword);
-                results.forEach(result => {
-                    result.queryStatus = '有搜索结果';
-                });
+                results.forEach(result => result.queryStatus = '有搜索结果');
                 return results;
             } catch (error) { throw error; }
         }
 
-        // ==================== 解析函数 ====================
+        // ==================== 结果解析函数 ====================
         function parseSite1HTML(html, keyword) {
             const results = [];
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
             const items = doc.querySelectorAll('.panel.post');
             let count = 0;
+            
             items.forEach(item => {
                 if (count >= 10) return;
                 try {
@@ -858,13 +866,14 @@
                     const nameEl = item.querySelector('table.s-title a');
                     const statusEl = item.querySelector('.s-status');
                     const dateEl = item.querySelectorAll('div.panel-footer time')[1];
+                    
                     const code = codeEl ? codeEl.textContent.trim() : '';
                     let name = nameEl ? nameEl.textContent.trim() : '';
                     
                     name = cleanBookQuotes(name);
                     name = cleanSequenceNumbers(name);
-                    
                     if (code && name.includes(code)) name = name.replace(code, '').trim();
+                    
                     results.push({
                         keyword, code, name,
                         status: statusEl ? statusEl.textContent.trim() : '现行',
@@ -883,54 +892,38 @@
             const results = [];
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
-            
             const items = doc.querySelectorAll('div.img-search-list');
-            
             let count = 0;
+            
             items.forEach(item => {
                 if (count >= 10) return;
-                
                 try {
                     let status = '现行';
                     const abolishSpan = item.querySelector('span.abolish');
-                    const activeSpan = item.querySelector('span.active');
-                    
-                    if (abolishSpan && abolishSpan.textContent.includes('废止')) {
-                        status = '废止';
-                    } else if (activeSpan) {
-                        status = activeSpan.textContent.trim() || '现行';
-                    }
+                    if (abolishSpan && abolishSpan.textContent.includes('废止')) status = '废止';
                     
                     const titleEl = item.querySelector('h4.search-tit a');
                     if (!titleEl) return;
-                    
                     let rawTitle = titleEl.textContent.trim();
-                    if (!rawTitle) return;
-                    
                     rawTitle = cleanBookQuotes(rawTitle);
                     rawTitle = cleanSequenceNumbers(rawTitle);
                     
                     let code = '';
                     let name = '';
-                    
                     const separators = ['：', ':'];
                     let splitIndex = -1;
-                    let usedSeparator = '';
                     
                     for (const sep of separators) {
                         const index = rawTitle.indexOf(sep);
                         if (index > 0 && index < 50) {
                             splitIndex = index;
-                            usedSeparator = sep;
                             break;
                         }
                     }
                     
                     if (splitIndex > 0) {
                         code = rawTitle.substring(0, splitIndex).trim();
-                        name = rawTitle.substring(splitIndex + usedSeparator.length).trim();
-                        
-                        name = name.replace(/^[\s：:]+/, '').trim();
+                        name = rawTitle.substring(splitIndex + 1).trim();
                         name = cleanBookQuotes(name);
                         name = cleanSequenceNumbers(name);
                     } else {
@@ -946,16 +939,12 @@
                         const text = el.textContent || '';
                         if (text.includes('实施日期：') || text.includes('实施日期:')) {
                             date = text.replace('实施日期：', '').replace('实施日期:', '').trim();
-                            date = cleanBookQuotes(date);
-                            date = cleanSequenceNumbers(date);
                         }
                     });
                     
                     if (code || name) {
                         results.push({
-                            keyword,
-                            code: code || '',
-                            name: name || '',
+                            keyword, code, name,
                             status: status,
                             date: date,
                             site: '建筑标准网站',
@@ -964,12 +953,10 @@
                         });
                         count++;
                     }
-                    
                 } catch (e) {
-                    console.error('解析失败:', e);
+                    console.error('解析建筑标准网站结果失败:', e);
                 }
             });
-            
             return results;
         }
 
@@ -990,25 +977,23 @@
                     date = cleanSequenceNumbers(date);
                     
                     if (date.includes('T')) date = date.split('T')[0];
-                    if (code || name) {
-                        results.push({
-                            keyword, code, name,
-                            status: item.StandardState || '现行',
-                            date: date,
-                            site: '工程建设标准化信息网',
-                            match: isExactMatch(keyword, code, name),
-                            queryStatus: '有搜索结果'
-                        });
-                    }
+                    
+                    results.push({
+                        keyword, code, name,
+                        status: item.StandardState || '现行',
+                        date: date,
+                        site: '工程建设标准化信息网',
+                        match: isExactMatch(keyword, code, name),
+                        queryStatus: '有搜索结果'
+                    });
                 });
             }
             return results;
         }
 
+        // ==================== 匹配状态判断函数 ====================
         function isExactMatch(keyword, code, name) {
             if (!keyword) return '○';
-            
-            const cleanKeyword = cleanSequenceNumbers(cleanBookQuotes(keyword));
             
             const clean = (str) => {
                 if (!str) return '';
@@ -1016,16 +1001,15 @@
                 return cleaned.toLowerCase().replace(/\s+/g, '').replace(/[：:，,。.;；]/g, '');
             };
             
-            const kw = clean(cleanKeyword);
+            const kw = clean(keyword);
             const c = clean(code);
             const n = clean(name);
             
             if (kw === c || kw === n) return '●';
-            if (c && c.includes(kw) || n && n.includes(kw)) return '○';
             return '○';
         }
 
-        // ==================== 辅助函数 ====================
+        // ==================== 结果辅助处理函数 ====================
         function removeDuplicates(results) {
             const uniqueResults = [];
             const seen = new Set();
@@ -1037,7 +1021,6 @@
                     uniqueResults.push(result);
                 }
             });
-            
             return uniqueResults;
         }
 
@@ -1049,9 +1032,7 @@
                     map.set(key, {...result, sources: [result.site]});
                 } else {
                     const existing = map.get(key);
-                    if (!existing.sources.includes(result.site)) {
-                        existing.sources.push(result.site);
-                    }
+                    if (!existing.sources.includes(result.site)) existing.sources.push(result.site);
                     existing.site = existing.sources.join(', ');
                 }
             });
@@ -1062,28 +1043,38 @@
             const tbody = document.getElementById('resultsBody');
             const table = document.getElementById('resultsTable');
             if (replace) tbody.innerHTML = '';
+            
             results.forEach(result => {
                 const row = document.createElement('tr');
                 const matchClass = result.match === '●' ? 'match-exact' : 'match-partial';
                 const matchHtml = `<span class="match-indicator ${matchClass}">${result.match}</span>`;
                 
                 let keywordDisplay = result.keyword;
-                const isFromSplit = allKeywords.length > rawKeywords?.length || result.keyword.includes('GB') || result.keyword.includes('JGJ') || result.keyword.includes('DBJ');
-                if (isFromSplit) {
-                    keywordDisplay = `<span title="从组合关键词拆分">${result.keyword} 📋</span>`;
+                let codeDisplay = result.code || '-';
+                let nameDisplay = result.name || '-';
+                
+                // 高亮显示合并结果
+                if (result.isMerged) {
+                    keywordDisplay = `<span title="精确匹配合并结果" style="color: #1a73e8; font-weight: 600;">${result.keyword}</span>`;
+                    codeDisplay = `<strong style="color: #34a853;">${codeDisplay}</strong>`;
+                    nameDisplay = `<span style="color: #34a853;">${nameDisplay}</span>`;
+                } else {
+                    const isFromSplit = allKeywords.length > rawKeywords?.length || result.keyword.includes('GB') || result.keyword.includes('JGJ') || result.keyword.includes('DBJ');
+                    if (isFromSplit) keywordDisplay = `<span title="从组合关键词拆分">${result.keyword} 📋</span>`;
                 }
                 
                 row.innerHTML = `
                     <td>${keywordDisplay}</td>
-                    <td><strong>${result.code}</strong></td>
-                    <td>${result.name}</td>
-                    <td>${result.status}</td>
+                    <td>${codeDisplay}</td>
+                    <td>${nameDisplay}</td>
+                    <td>${result.status || '-'}</td>
                     <td>${result.queryStatus || '未知'}</td>
-                    <td>${result.date}</td>
-                    <td>${result.site}</td>
+                    <td>${result.date || '-'}</td>
+                    <td>${result.site || '-'}</td>
                     <td>${matchHtml}</td>`;
                 tbody.appendChild(row);
             });
+            
             if (tbody.children.length > 0) table.classList.add('visible');
         }
 
@@ -1091,36 +1082,46 @@
             if (keywordsWithNoExactMatch.size > 0) {
                 const noMatchList = document.getElementById('noExactMatchList');
                 const summaryBox = document.getElementById('noExactMatchSummary');
-                
                 const keywordArray = Array.from(keywordsWithNoExactMatch);
+                
                 noMatchList.textContent = keywordArray.join(', ');
                 summaryBox.style.display = 'block';
-                
-                addLog(`有 ${keywordsWithNoExactMatch.size} 个关键词未找到精确匹配: ${keywordArray.join(', ')}`, 'warning');
+                addLog(`有 ${keywordsWithNoExactMatch.size} 个关键词未找到精确匹配`, 'warning');
             }
         }
 
-        // ==================== 控制函数 ====================
+        // ==================== 导出与控制函数 ====================
         function exportResults() {
             if (searchResults.length === 0) return;
             
-            const headers = ['关键词', '规范代号', '规范名称', '状态', '查询状态', '实施日期', '来源网站', '匹配'];
+            const headers = ['关键词', '规范代号', '规范名称', '状态', '查询状态', '实施日期', '来源网站', '匹配状态', '是否合并'];
             const csvRows = [
                 headers.join(','),
                 ...searchResults.map(r => [
-                    `"${r.keyword}"`, `"${r.code}"`, `"${r.name}"`, `"${r.status}"`, `"${r.queryStatus || '未知'}"`, `"${r.date}"`, `"${r.site}"`, `"${r.match}"`
+                    `"${r.keyword}"`, 
+                    `"${r.code || '-'}"`, 
+                    `"${r.name || '-'}"`, 
+                    `"${r.status || '-'}"`, 
+                    `"${r.queryStatus || '未知'}"`, 
+                    `"${r.date || '-'}"`, 
+                    `"${r.site || '-'}"`, 
+                    `"${r.match}"`,
+                    `"${r.isMerged ? '是' : '否'}"`
                 ].join(','))
             ];
             
+            // 添加统计信息
             csvRows.push('');
             csvRows.push('"查询统计信息"');
             csvRows.push(`"查询关键词总数",${allKeywords.length}`);
             csvRows.push(`"找到结果总数",${searchResults.length}`);
+            const mergedCount = searchResults.filter(r => r.isMerged).length;
+            csvRows.push(`"精确匹配合并结果数",${mergedCount}`);
             csvRows.push(`"有有效结果的关键词数",${keywordsWithValidResults.size}`);
             
             if (keywordsWithNoExactMatch.size > 0) {
                 csvRows.push('');
-                csvRows.push('"以下关键词未找到精确匹配"');
+                csvRows.push('"未找到精确匹配的关键词"');
                 const keywordArray = Array.from(keywordsWithNoExactMatch);
                 for (let i = 0; i < keywordArray.length; i += 5) {
                     const chunk = keywordArray.slice(i, i + 5);
@@ -1128,6 +1129,7 @@
                 }
             }
             
+            // 生成并下载CSV文件
             const csv = csvRows.join('\n');
             const blob = new Blob(['\ufeff' + csv], {type: 'text/csv;charset=utf-8;'});
             const link = document.createElement('a');
@@ -1137,13 +1139,14 @@
             link.click();
             document.body.removeChild(link);
             URL.revokeObjectURL(link.href);
-            addLog(`已导出 ${searchResults.length} 条结果到CSV文件`, 'success');
+            
+            addLog(`已导出 ${searchResults.length} 条结果（含 ${mergedCount} 条合并结果）到CSV文件`, 'success');
         }
 
         function cancelSearch() {
             if (isSearching) {
                 searchCancelled = true;
-                addLog('正在取消查询...', 'warning');
+                addLog('正在取消查询，请稍候...', 'warning');
             }
         }
 
@@ -1154,35 +1157,28 @@
             document.getElementById('resultsCount').textContent = '共 0 条结果';
             document.getElementById('logContainer').innerHTML = '';
             document.getElementById('noExactMatchSummary').style.display = 'none';
+            
             searchResults = [];
             allKeywords = [];
             rawKeywords = [];
             keywordsWithNoExactMatch.clear();
             keywordsWithValidResults.clear();
+            
             document.getElementById('exportBtn').disabled = true;
             updateProgress(0, '就绪');
-            addLog('已清除所有内容', 'info');
+            addLog('已清除所有查询内容和结果', 'info');
         }
 
         function clearLog() {
             document.getElementById('logContainer').innerHTML = '';
-            addLog('日志已清空', 'info');
+            addLog('执行日志已清空', 'info');
         }
 
-        // ==================== 初始化 ====================
+        // ==================== 页面初始化 ====================
         document.addEventListener('DOMContentLoaded', function() {
-            addLog('建设行业规范版本有效性查询工具已就绪', 'success');
-            addLog('提示：● 表示完全匹配，○ 表示不完全匹配', 'info');
-            addLog('双击网站区域可直接访问官网', 'info');
-            addLog('每个网站最多返回10条结果', 'info');
-            addLog('建筑标准网站：分别搜索国家标准和行业标准', 'info');
-            addLog('智能拆分：支持"GB 50009-2012 建筑结构荷载规范"自动拆分为"GB 50009-2012"和"建筑结构荷载规范"分别搜索', 'info');
-            addLog('书名号清理：自动清理规范名称中的《》和<>符号', 'info');
-            addLog('序号清理：自动清理行首的（1）、（2）、（3）等序号，且不会将序号作为关键词搜索', 'info');
-            addLog('优化识别：支持无空格代号如"GB55019-2021"的准确识别', 'info');
-            addLog('全面支持/T规范：正确识别如"JGJ/T235-2011"、"DBJ/T15-19"、"CJJ/T"等所有带/T的规范代号', 'info');
-            addLog('地方标准支持：正确识别如"DBJ15-133-2018"、"DBJ/T15-19"等地方标准代号', 'info');
-            addLog('优化：关键词有有效结果时，将过滤其他网站的无结果记录', 'info');
+            addLog('建设行业规范查询工具已就绪', 'success');
+            addLog('提示：● 表示精确匹配，○ 表示部分匹配', 'info');
+            addLog('支持双向拆分：编号在前/在后均能正确提取关键词', 'info');
             detectCorsExtension();
         });
     </script>
