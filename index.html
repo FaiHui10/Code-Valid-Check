@@ -30,7 +30,7 @@
         .btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .progress-bar { height: 6px; background: #e0e0e0; border-radius: 3px; margin: 15px 0 10px; overflow: hidden; }
         .progress-fill { height: 100%; background: #1a73e8; width: 0%; transition: width 0.3s; }
-        .log-container { background: #1e1e1e; color: #fff; border-radius: 6px; padding: 12px; font-family: 'Consolas', monospace; font-size: 12px; max-height: 200px; overflow-y: auto; margin-top: 15px; line-height: 1.4; }
+        .log-container { background: #1e1e1e; color: #fff; border-radius: 6px; padding: 12px; font-family: 'Consolas', monospace; font-size: 12px; max-height: 200px; overflow-y auto; margin-top: 15px; line-height: 1.4; }
         .log-entry { margin-bottom: 4px; padding-bottom: 4px; border-bottom: 1px solid #333; }
         .log-time { color: #999; margin-right: 8px; }
         .log-success { color: #4caf50; }
@@ -44,6 +44,7 @@
         .match-indicator { display: inline-block; width: 18px; height: 18px; border-radius: 50%; text-align: center; line-height: 18px; font-size: 11px; margin-right: 5px; }
         .match-exact { background: #4caf50; color: white; }
         .match-partial { background: #ff9800; color: white; }
+        .match-none { background: #e0e0e0; color: #666; }
         .loading-overlay { position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.7); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; color: white; }
         .loading-overlay.active { display: flex; }
         .spinner { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.3); border-top: 4px solid white; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
@@ -53,13 +54,18 @@
 		.summary-box { background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 6px; padding: 10px; margin-top: 10px; font-size: 13px; }
         .cors-warning { background: #fef0f0; border-left: 4px solid #dc3545; padding: 12px 15px; margin: 15px 0; font-size: 13px; border-radius: 4px; }
         .keyword-tag { background: #e3f2fd; border-radius: 4px; padding: 2px 6px; margin: 0 2px; font-size: 12px; color: #1a73e8; }
+        .similarity-badge { display: inline-block; background: #e3f2fd; border-radius: 10px; padding: 1px 6px; font-size: 11px; margin-left: 5px; color: #1a73e8; }
+        .no-result-row { background-color: #f8f9fa !important; }
+        .no-result-cell { color: #6c757d !important; font-style: italic; }
+        .merged-result { background-color: #f0f9f4 !important; }
+        .merged-keyword { color: #1a73e8 !important; font-weight: 600; }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
             <h1>建设行业规范版本有效性查核（完整兼容版）</h1>
-            <div class="subtitle">支持编号在前/在后拆分 | 精确匹配合并 | 适配Microsoft Edge浏览器</div>
+            <div class="subtitle">支持多线并发查询 | 名称匹配度过滤 | 保持输入顺序</div>
         </header>
 
         <div class="main-content">
@@ -81,8 +87,6 @@
                     <p>5. 地标、协会标之类的建议用户自行查核。</p>
 					<p>6. 可以尝试登录国家标准馆查询规范标准（批量查询需要账号）<a href="https://www.ndls.org.cn/" target="_blank" rel="noopener noreferrer">https://www.ndls.org.cn/</a></p>
                     <p>7. <strong>智能拆分：</strong>支持"GB 50009-2012 建筑结构荷载规范"（编号在后）和"JGJ/T235-2011 建筑外墙防水工程技术规程"（编号在前）自动拆分</p>
-                    <p>8. <strong>精确匹配合并：</strong>若规范编号和名称均精确匹配，将自动合并为一条结果（蓝色高亮关键词，绿色高亮编号/名称）</p>
-                    <p>9. <strong>序号、书名号自动清理</strong>。</p>
                 </div>
                 <div class="websites-grid">
                     <label class="website-item selected" id="websiteItem1" ondblclick="window.open('https://std.samr.gov.cn', '_blank')">
@@ -111,7 +115,7 @@
 
             <div class="section">
                 <div class="section-title">⌨️ 输入查询关键词</div>
-                <textarea id="keywordInput" placeholder="请输入关键词，多个关键词用逗号、分号或换行分隔&#10;支持双向智能拆分：&#10;1. 编号在后：建筑结构荷载规范 GB 50009-2012 → 拆分为编号和名称&#10;2. 编号在前：JGJ/T235-2011 建筑外墙防水工程技术规程 → 拆分为编号和名称&#10;3. 序号清理：（1）建筑结构荷载规范 GB 50009-2021&#10;4. 书名号清理：《建筑设计防火规范》GB 50016&#10;5. 支持无空格代号：GB55019-2021&#10;6. 支持带/T规范：JGJ/T235-2011、DBJ/T15-19&#10;7. 支持地方标准：DBJ15-133-2018">JGJ/T235-2011 建筑外墙防水工程技术规程</textarea>
+                <textarea id="keywordInput" placeholder="请输入关键词，多个关键词用逗号、分号或换行分隔&#10;支持双向智能拆分：&#10;1. 编号在后：建筑结构荷载规范 GB 50009-2012 → 拆分为编号和名称&#10;2. 编号在前：JGJ/T235-2011 建筑外墙防水工程技术规程 → 拆分为编号和名称&#10;3. 序号清理：（1）建筑结构荷载规范 GB 50009-2021&#10;4. 书名号清理：《建筑设计防火规范》GB 50016&#10;5. 支持无空格代号：GB55019-2021&#10;6. 支持带/T规范：JGJ/T235-2011、DBJ/T15-19&#10;7. 支持地方标准：DBJ15-133-2018&#10;8. 支持带括号规范：组合结构设计规范(JGJ133-2016（即使括号不完整也能正确拆分）">JGJ/T235-2011 建筑外墙防水工程技术规程</textarea>
             </div>
 
             <div class="section">
@@ -144,6 +148,7 @@
                             <th>实施日期</th>
                             <th>来源网站</th>
                             <th>匹配状态</th>
+                            <th>名称匹配度</th>
                         </tr>
                     </thead>
                     <tbody id="resultsBody"></tbody>
@@ -173,6 +178,7 @@
         let keywordsWithNoExactMatch = new Set();
         let keywordsWithValidResults = new Set();
         let rawKeywords = [];
+        let processedKeywords = [];
 
         // ==================== 核心工具函数 ====================
         function addLog(msg, type='info') {
@@ -192,7 +198,176 @@
         
         function delay(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
-        // ==================== 新增：规范结果合并工具函数 ====================
+        // ==================== 字符串相似度计算函数 ====================
+        function calculateSimilarity(str1, str2) {
+            if (!str1 || !str2) return 0;
+            
+            const cleanStr = (str) => {
+                return str.replace(/[《》\s\-——，,。.;；:：]/g, '').toLowerCase();
+            };
+            
+            const s1 = cleanStr(str1);
+            const s2 = cleanStr(str2);
+            
+            if (s1 === s2) return 100;
+            if (s1.length === 0 || s2.length === 0) return 0;
+            
+            const len1 = s1.length;
+            const len2 = s2.length;
+            const matrix = [];
+            
+            for (let i = 0; i <= len1; i++) {
+                matrix[i] = [i];
+            }
+            
+            for (let j = 0; j <= len2; j++) {
+                matrix[0][j] = j;
+            }
+            
+            for (let i = 1; i <= len1; i++) {
+                for (let j = 1; j <= len2; j++) {
+                    const cost = s1[i - 1] === s2[j - 1] ? 0 : 1;
+                    matrix[i][j] = Math.min(
+                        matrix[i - 1][j] + 1,
+                        matrix[i][j - 1] + 1,
+                        matrix[i - 1][j - 1] + cost
+                    );
+                }
+            }
+            
+            const distance = matrix[len1][len2];
+            const maxLen = Math.max(len1, len2);
+            const similarity = ((maxLen - distance) / maxLen) * 100;
+            
+            return Math.round(similarity * 10) / 10;
+        }
+
+        // ==================== 判断是否为规范名称关键词 ====================
+        function isNameKeyword(keyword) {
+            if (!keyword) return false;
+            
+            // 规范代号模式
+            const codePatterns = [
+                /^GB\/T\s*\d+/i,
+                /^GB\s*\d{5}/i,
+                /^GB\s*\d+/i,
+                /^JGJ\/T\s*\d+/i,
+                /^JGJ\s*\d+/i,
+                /^CJJ\/T\s*\d+/i,
+                /^CJJ\s*\d+/i,
+                /^DBJ\/T\s*\d+/i,
+                /^DBJ\s*\d+/i,
+                /^DB\/T\s*\d+/i,
+                /^DB\s*\d+/i,
+                /^\d{4,}/,
+            ];
+            
+            for (const pattern of codePatterns) {
+                if (pattern.test(keyword.trim())) {
+                    return false;
+                }
+            }
+            
+            const nameKeywords = ['规范', '规程', '标准', '技术', '设计', '施工', '验收', '防火', '结构', '荷载'];
+            const hasNameKeyword = nameKeywords.some(word => keyword.includes(word));
+            
+            const isLongEnough = keyword.length >= 4;
+            
+            return hasNameKeyword && isLongEnough;
+        }
+
+        // ==================== 多线并发查询函数 ====================
+        async function searchKeywordConcurrently(keyword, index, total) {
+            if (searchCancelled) {
+                return { 
+                    keyword, 
+                    results: [], 
+                    hasExactMatch: false,
+                    hasAnyResult: false
+                };
+            }
+            
+            const progressPercent = ((index) / total) * 100;
+            updateProgress(progressPercent, `并发查询中：${keyword}`);
+            addLog(`开始查询关键词[${index+1}/${total}]: ${keyword}`, 'info');
+            
+            const keywordResults = [];
+            const isNameKey = isNameKeyword(keyword);
+            
+            // 为每个网站创建查询任务
+            const sitePromises = selectedSites.map(async (siteId) => {
+                if (searchCancelled) return [];
+                
+                const siteName = document.getElementById(siteId).nextElementSibling.querySelector('.website-name').textContent;
+                try {
+                    let results = [];
+                    
+                    if (siteId === 'site1') {
+                        results = await querySite1(keyword);
+                    } else if (siteId === 'site2') {
+                        const nationalResults = await querySite2National(keyword);
+                        const industryResults = await querySite2Industry(keyword);
+                        results = [...nationalResults, ...industryResults];
+                        results = removeDuplicates(results);
+                    } else if (siteId === 'site3') {
+                        results = await querySite3(keyword);
+                    }
+                    
+                    // 名称匹配度过滤
+                    if (isNameKey && results.length > 0) {
+                        results = results.filter(result => {
+                            if (!result.name) return false;
+                            const similarity = calculateSimilarity(keyword, result.name);
+                            result.similarity = similarity;
+                            return similarity >= 60;
+                        });
+                        
+                        if (results.length > 0) {
+                            addLog(`  ${siteName}: 找到 ${results.length} 条结果（已过滤低匹配度结果）`, 'success');
+                        } else {
+                            addLog(`  ${siteName}: 结果匹配度均低于60%，已过滤`, 'warning');
+                        }
+                    } else if (results.length > 0) {
+                        addLog(`  ${siteName}: 找到 ${results.length} 条结果`, 'success');
+                    }
+                    
+                    return results;
+                } catch (error) {
+                    addLog(`  ${siteName}查询失败: ${error.message}`, 'error');
+                    return [];
+                }
+            });
+            
+            // 并发执行所有网站查询
+            const allSiteResults = await Promise.all(sitePromises);
+            
+            // 合并所有网站的结果
+            allSiteResults.forEach(siteResults => {
+                keywordResults.push(...siteResults);
+            });
+            
+            // 检查是否有精确匹配
+            const hasExactMatch = keywordResults.some(r => r.match === '●');
+            const hasAnyResult = keywordResults.length > 0;
+            
+            if (hasAnyResult) {
+                keywordsWithValidResults.add(keyword);
+            }
+            
+            if (!hasExactMatch) {
+                keywordsWithNoExactMatch.add(keyword);
+            }
+            
+            return {
+                keyword,
+                results: keywordResults,
+                hasExactMatch,
+                hasAnyResult,
+                isNameKey
+            };
+        }
+
+        // ==================== 规范结果合并工具函数（增强版） ====================
         function getStandardUniqueKey(code, name) {
             const clean = (str) => {
                 if (!str) return '';
@@ -248,19 +423,90 @@
                     mergedResult.isMerged = true;
                     mergedResult.match = '●';
                     mergedResult.queryStatus = '精确匹配合并结果';
+                    mergedResult.mergedFrom = exactMatches.map(item => item.keyword); // 记录合并来源
                     mergedResults.push(mergedResult);
+                    
+                    // 不再添加部分匹配的结果
+                    addLog(`创建精确匹配合并结果: "${mergedResult.keyword}"，不再显示相关部分匹配结果`, 'info');
                 } else if (exactMatches.length === 1) {
                     exactMatches[0].isMerged = false;
                     mergedResults.push(exactMatches[0]);
                 }
                 
-                partialMatches.forEach(item => {
-                    item.isMerged = false;
-                    mergedResults.push(item);
-                });
+                // 只有在没有精确匹配合并时才添加部分匹配
+                if (exactMatches.length < 2) {
+                    partialMatches.forEach(item => {
+                        item.isMerged = false;
+                        mergedResults.push(item);
+                    });
+                }
             });
             
             return deduplicateResults(mergedResults);
+        }
+
+        // ==================== 新增：过滤与合并结果相关的部分匹配结果 ====================
+        function filterPartialMatchesAfterMerge(results) {
+            const mergedResults = results.filter(r => r.isMerged);
+            const partialResults = results.filter(r => !r.isMerged && !r.isNoResult);
+            const noResultRows = results.filter(r => r.isNoResult);
+            
+            // 如果没有合并结果，直接返回所有结果
+            if (mergedResults.length === 0) {
+                return [...partialResults, ...noResultRows];
+            }
+            
+            // 收集所有合并结果的关键词来源
+            const mergedKeywords = new Set();
+            mergedResults.forEach(merged => {
+                if (merged.mergedFrom) {
+                    merged.mergedFrom.forEach(keyword => mergedKeywords.add(keyword));
+                }
+            });
+            
+            // 过滤部分匹配结果：如果部分匹配的关键词与合并结果的关键词来源相同，则过滤掉
+            const filteredPartialResults = partialResults.filter(partial => {
+                // 如果这个部分匹配结果的关键词在合并结果的关键词来源中，则过滤掉
+                if (mergedKeywords.has(partial.keyword)) {
+                    addLog(`过滤与合并结果相关的部分匹配: "${partial.keyword}"`, 'info');
+                    return false;
+                }
+                
+                // 检查这个部分匹配是否与任何合并结果相关（通过代号或名称）
+                const isRelatedToMerged = mergedResults.some(merged => {
+                    // 如果代号或名称相似，则认为是相关的
+                    const clean = (str) => {
+                        if (!str) return '';
+                        return str.toLowerCase().replace(/\s+/g, '').replace(/[：:，,。.;；]/g, '');
+                    };
+                    
+                    const partialCode = clean(partial.code);
+                    const partialName = clean(partial.name);
+                    const mergedCode = clean(merged.code);
+                    const mergedName = clean(merged.name);
+                    
+                    // 如果代号相同或名称高度相似，则认为是相关的
+                    if (partialCode && mergedCode && partialCode === mergedCode) {
+                        return true;
+                    }
+                    
+                    if (partialName && mergedName) {
+                        const similarity = calculateSimilarity(partialName, mergedName);
+                        return similarity > 70; // 名称相似度大于70%认为相关
+                    }
+                    
+                    return false;
+                });
+                
+                if (isRelatedToMerged) {
+                    addLog(`过滤与合并结果高度相关的部分匹配: "${partial.keyword}" (${partial.name})`, 'info');
+                    return false;
+                }
+                
+                return true;
+            });
+            
+            return [...mergedResults, ...filteredPartialResults, ...noResultRows];
         }
 
         // ==================== 清理函数 ====================
@@ -303,214 +549,138 @@
             return cleaned;
         }
 
-        // ==================== 关键词智能拆分函数（兼容编号在前/在后两种模式） ====================
+        // ==================== 关键词智能拆分函数 ====================
         function extractCodeAndName(input) {
             if (!input) return { code: '', name: '' };
             const originalInput = input;
             
-            // 1. 首先彻底清理序号和书名号
-            let cleanedInput = cleanSequenceNumbers(input);
+            let cleanedInput = input.trim();
+            
+            const sequencePatterns = [
+                /^（\d+）\s*/,
+                /^\(\d+\)\s*/,
+                /^\d+[\.、）)\]\s\t]+\s*/,
+                /^[①②③④⑤⑥⑦⑧⑨⑩]\s*/,
+                /^[⑴⑵⑶⑷⑸⑹⑺⑻⑼⑽]\s*/,
+                /^[一二三四五六七八九十]+[、\.）)\s\t]\s*/,
+            ];
+            
+            for (const pattern of sequencePatterns) {
+                if (pattern.test(cleanedInput)) {
+                    cleanedInput = cleanedInput.replace(pattern, '').trim();
+                    break;
+                }
+            }
+            
             cleanedInput = cleanBookQuotes(cleanedInput).trim();
             
-            // 2. 如果清理后完全是空的，说明原始输入可能只是序号
             if (!cleanedInput) {
                 return { code: '', name: '' };
             }
             
-            // 3. 增强的规范代号模式（全面支持各种/T规范）
             const codePatterns = [
-                // ====== 国家标准 ======
-                /(GB\/T\s*\d+(?:[\.\-]\d+)*)/i,
-                /(GB\s*\/\s*T\s*\d+(?:[\.\-]\d+)*)/i,
-                /(GB\s*\d{5}-\d{4})/i,
-                /(GB\s*\d+(?:[\.\-]\d+)*)/i,
-                
-                // ====== 行业标准（带/T） ======
-                /(JGJ\/T\s*\d+(?:[\.\-]\d+)*)/i,
-                /(JGJ\s*\/\s*T\s*\d+(?:[\.\-]\d+)*)/i,
-                /(CJJ\/T\s*\d+(?:[\.\-]\d+)*)/i,
-                /(CJJ\s*\/\s*T\s*\d+(?:[\.\-]\d+)*)/i,
-                /(DL\/T\s*\d+(?:[\.\-]\d+)*)/i,
-                /(DL\s*\/\s*T\s*\d+(?:[\.\-]\d+)*)/i,
-                /(NB\/T\s*\d+(?:[\.\-]\d+)*)/i,
-                /(NB\s*\/\s*T\s*\d+(?:[\.\-]\d+)*)/i,
-                /(SH\/T\s*\d+(?:[\.\-]\d+)*)/i,
-                /(SH\s*\/\s*T\s*\d+(?:[\.\-]\d+)*)/i,
-                /(SY\/T\s*\d+(?:[\.\-]\d+)*)/i,
-                /(SY\s*\/\s*T\s*\d+(?:[\.\-]\d+)*)/i,
-                /(HG\/T\s*\d+(?:[\.\-]\d+)*)/i,
-                /(HG\s*\/\s*T\s*\d+(?:[\.\-]\d+)*)/i,
-                /(QB\/T\s*\d+(?:[\.\-]\d+)*)/i,
-                /(QB\s*\/\s*T\s*\d+(?:[\.\-]\d+)*)/i,
-                /(JC\/T\s*\d+(?:[\.\-]\d+)*)/i,
-                /(JC\s*\/\s*T\s*\d+(?:[\.\-]\d+)*)/i,
-                
-                // ====== 地方标准（带/T） ======
-                /(DBJ\/T\s*\d+(?:[\.\-]\d+)*)/i,
-                /(DBJ\s*\/\s*T\s*\d+(?:[\.\-]\d+)*)/i,
-                /(DB\/T\s*\d+(?:[\.\-]\d+)*)/i,
-                /(DB\s*\/\s*T\s*\d+(?:[\.\-]\d+)*)/i,
-                
-                // ====== 行业标准（不带/T） ======
-                /(JGJ\s*\d+(?:[\.\-]\d+)*)/i,
-                /(CJJ\s*\d+(?:[\.\-]\d+)*)/i,
-                /(DL\s*\d+(?:[\.\-]\d+)*)/i,
-                /(NB\s*\d+(?:[\.\-]\d+)*)/i,
-                /(SH\s*\d+(?:[\.\-]\d+)*)/i,
-                /(SY\s*\d+(?:[\.\-]\d+)*)/i,
-                /(HG\s*\d+(?:[\.\-]\d+)*)/i,
-                /(QB\s*\d+(?:[\.\-]\d+)*)/i,
-                /(JC\s*\d+(?:[\.\-]\d+)*)/i,
-                /(JTJ\s*\d+(?:[\.\-]\d+)*)/i,
-                /(TB\s*\d+(?:[\.\-]\d+)*)/i,
-                /(SL\s*\d+(?:[\.\-]\d+)*)/i,
-                /(YB\s*\d+(?:[\.\-]\d+)*)/i,
-                
-                // ====== 地方标准（不带/T） ======
-                /(DBJ\d+(?:[\.\-]\d+)*)/i,
-                /(DB\d+(?:[\.\-]\d+)*)/i,
-                /(DB\s*\d+(?:[\.\-]\d+)*)/i,
-                
-                // ====== 其他标准 ======
-                /(Q\s*\/\s*[A-Za-z0-9]+)/i,
-                /(\d{4,})/,
+                /\(([A-Z]{2,}(?:\/[A-Z])?\d+(?:[\.\-]\d+)*)\)/i,
+                /\(([A-Z]{2,}(?:\/[A-Z])?\d+(?:[\.\-]\d+)*)/i,
+                /([A-Z]{2,}(?:\/[A-Z])?\d+(?:[\.\-]\d+)*)\)/i,
+                /([A-Z]{2,}(?:\/[A-Z])?\d+(?:[\.\-]\d+)*)/i,
             ];
             
             let code = '';
             let name = '';
             
-            // 4. 尝试匹配完整的规范代号（支持两种顺序）
             for (const pattern of codePatterns) {
-                const matches = [];
-                let match;
-                const regex = new RegExp(pattern.source, 'gi');
-                
-                while ((match = regex.exec(cleanedInput)) !== null) {
-                    matches.push({
-                        text: match[1],
-                        index: match.index,
-                        length: match[0].length,
-                        endIndex: match.index + match[0].length // 记录匹配结果结束位置
-                    });
-                }
-                
-                if (matches.length > 0) {
-                    // 优先选择靠近末尾、长度更长的匹配
-                    matches.sort((a, b) => {
-                        const positionScore = (b.index - a.index);
-                        const lengthScore = (b.length - a.length);
-                        return positionScore || lengthScore;
-                    });
+                const match = cleanedInput.match(pattern);
+                if (match) {
+                    code = match[1].trim();
+                    const codeWithBrackets = match[0];
+                    name = cleanedInput.replace(codeWithBrackets, '').trim();
                     
-                    const bestMatch = matches[0];
-                    code = bestMatch.text.trim();
-                    const codeStartIndex = bestMatch.index;
-                    const codeEndIndex = bestMatch.endIndex;
-                    const fullInputLength = cleanedInput.length;
-                    
-                    // 核心：双向提取名称（编号前/编号后）
-                    const nameBeforeCode = cleanedInput.substring(0, codeStartIndex).trim();
-                    const nameAfterCode = cleanedInput.substring(codeEndIndex, fullInputLength).trim();
-                    
-                    // 优先选择非空名称，兼容两种输入顺序
-                    name = nameBeforeCode || nameAfterCode;
-                    
-                    // 清理名称格式
-                    name = cleanBookQuotes(name);
-                    name = cleanSequenceNumbers(name);
                     name = name.replace(/[\s：:，,。.;；\-–—]+$/, '').trim();
+                    name = name.replace(/^[\s：:，,。.;；\-–—]+/, '').trim();
                     
-                    // 移除名称中包含的代号
-                    const codePatternEscaped = code.replace(/[-\/]/g, '\\$&');
-                    if (name.includes(code)) {
-                        name = name.replace(new RegExp(codePatternEscaped, 'gi'), '').trim();
-                    }
+                    name = name.replace(/^\(/, '').replace(/\)$/, '').trim();
                     
-                    // 清理名称开头多余字符
-                    if (name && !/^(标准|规范|规程|规定|技术规范|设计规范)/.test(name)) {
-                        name = name.replace(/^[\s：:，,。.;；\-–—]+/, '').trim();
-                    }
-                    
-                    if (code && name) {
+                    if (name && code) {
+                        addLog(`检测到规范: "${originalInput}" → 名称: "${name}", 代号: "${code}"`, 'info');
                         return { code, name };
-                    } else if (code && !name) {
+                    } else if (code) {
+                        addLog(`检测到纯代号: "${originalInput}" → 代号: "${code}"`, 'info');
                         return { code, name: code };
                     }
+                    break;
                 }
             }
             
-            // 5. 无完整代号匹配时，按分隔符拆分
-            if (!code) {
-                const words = cleanedInput.split(/\s+/);
-                for (let i = words.length - 1; i >= 0; i--) {
-                    const word = words[i];
-                    const isLikelyCode = (
-                        (word.length >= 5 && word.length <= 25) &&
-                        (/[A-Za-z]/.test(word) && /\d/.test(word)) &&
-                        (/^[A-Z]{2,}/.test(word) || /^[A-Z]{2,}\/[A-Z]/.test(word)) &&
-                        !/[^\w\-\/\.]/.test(word)
-                    );
+            const spacePatterns = [
+                /^(.*?\S)\s+([A-Z]{2,}(?:\/[A-Z])?\d+(?:[\.\-]\d+)*)$/i,
+                /^([A-Z]{2,}(?:\/[A-Z])?\d+(?:[\.\-]\d+)*)\s+(.*\S)$/i,
+            ];
+            
+            for (const pattern of spacePatterns) {
+                const match = cleanedInput.match(pattern);
+                if (match) {
+                    if (pattern.source.includes('^.*?\\S)\\s+')) {
+                        name = match[1].trim();
+                        code = match[2].trim();
+                    } else {
+                        code = match[1].trim();
+                        name = match[2].trim();
+                    }
                     
-                    if (isLikelyCode) {
-                        code = word;
-                        const nameParts = words.filter((_, idx) => idx !== i);
-                        name = nameParts.join(' ').trim();
-                        
-                        if (name) {
-                            name = cleanBookQuotes(name);
-                            name = cleanSequenceNumbers(name);
-                            return { code, name };
-                        }
-                        break;
+                    name = name.replace(/[\s：:，,。.;；\-–—]+$/, '').trim();
+                    name = name.replace(/^[\s：:，,。.;；\-–—]+/, '').trim();
+                    
+                    if (name && code) {
+                        addLog(`检测到空格分隔: "${originalInput}" → 名称: "${name}", 代号: "${code}"`, 'info');
+                        return { code, name };
                     }
+                    break;
                 }
             }
             
-            // 6. 匹配常见后缀模式
-            if (!code) {
-                const suffixPatterns = [
-                    /([A-Z]{2,}\/\w+-\d{4})/i,
-                    /([A-Z]{2,}\d+-\d{4})/i,
-                    /([A-Z]{2,}-\d+-\d{4})/i,
-                    /([A-Z]{2,}\d+)/i,
-                ];
+            const nameKeywords = ['规范', '规程', '标准', '技术规程', '设计规范', '施工规范', '验收规范'];
+            const hasNameKeyword = nameKeywords.some(keyword => cleanedInput.includes(keyword));
+            
+            if (hasNameKeyword && cleanedInput.length >= 4) {
+                name = cleanedInput.replace(/\(+$/, '').replace(/^\)+/, '').trim();
+                name = name.replace(/[\s：:，,。.;；\-–—]+$/, '').trim();
+                addLog(`检测到纯名称: "${originalInput}" → 名称: "${name}"`, 'info');
+                return { code: '', name };
+            }
+            
+            const extractCodePattern = /([A-Z]{2,}(?:\/[A-Z])?\d+(?:[\.\-]\d+)*)/i;
+            const codeMatch = cleanedInput.match(extractCodePattern);
+            
+            if (codeMatch) {
+                code = codeMatch[1].trim();
+                name = cleanedInput.replace(codeMatch[0], '').trim();
+                name = name.replace(/[\s：:，,。.;；\-–—\(\)]+$/, '').trim();
+                name = name.replace(/^[\s：:，,。.;；\-–—\(\)]+/, '').trim();
                 
-                for (const pattern of suffixPatterns) {
-                    const match = cleanedInput.match(pattern);
-                    if (match) {
-                        code = match[1];
-                        name = cleanedInput.replace(match[0], '').trim();
-                        
-                        if (name) {
-                            name = cleanBookQuotes(name);
-                            name = cleanSequenceNumbers(name);
-                            name = name.replace(/[\s：:，,。.;；\-–—]+$/, '').trim();
-                            return { code, name };
-                        }
-                        break;
-                    }
+                if (name) {
+                    addLog(`从字符串提取: "${originalInput}" → 名称: "${name}", 代号: "${code}"`, 'info');
+                    return { code, name };
+                } else {
+                    addLog(`提取到纯代号: "${originalInput}" → 代号: "${code}"`, 'info');
+                    return { code, name: code };
                 }
             }
             
-            // 7. 最终兜底：整个字符串作为名称
-            if (!code && cleanedInput) {
-                name = cleanedInput;
-                return { code, name };
-            }
-            
-            return { code, name };
+            name = cleanedInput.replace(/\(+$/, '').replace(/^\)+/, '').trim();
+            name = name.replace(/[\s：:，,。.;；\-–—]+$/, '').trim();
+            addLog(`作为完整名称处理: "${originalInput}" → 名称: "${name}"`, 'info');
+            return { code: '', name };
         }
 
         // ==================== 关键词解析函数 ====================
         function parseKeywords(input) {
             rawKeywords = input.split(/[\n\t,;，；]+/).filter(k => k.trim());
-            const processedKeywords = new Set();
+            const processedKeywords = new Map();
             
             rawKeywords.forEach(keyword => {
                 const trimmed = keyword.trim();
                 if (!trimmed) return;
                 
-                // 跳过纯序号行
                 const cleanedForCheck = trimmed.replace(/[\t\s]/g, '');
                 const pureSequencePattern = /^[（(]?\d+[）)\]]*$/;
                 if (pureSequencePattern.test(cleanedForCheck)) {
@@ -518,42 +688,40 @@
                     return;
                 }
                 
-                // 提取代号和名称（双向兼容）
                 const { code, name } = extractCodeAndName(trimmed);
                 const isValidCode = code && !/^[（(]?\d+[）)\]\s\t]*$/.test(code.replace(/[\t\s]/g, ''));
                 const isValidName = name && !/^[（(]?\d+[）)\]\s\t]*$/.test(name.replace(/[\t\s]/g, '')) && name.trim().length > 0;
                 
-                // 拆分并添加关键词
                 if (isValidCode && isValidName && code !== name) {
-                    processedKeywords.add(code);
-                    processedKeywords.add(name);
+                    processedKeywords.set(code, { type: 'code', original: trimmed });
+                    processedKeywords.set(name, { type: 'name', original: trimmed });
                     addLog(`检测到组合关键词 "${trimmed}"，已拆分为: "${code}" 和 "${name}"`, 'info');
                 } else if (isValidCode) {
-                    processedKeywords.add(code);
+                    processedKeywords.set(code, { type: 'code', original: trimmed });
                     if (trimmed !== code) addLog(`关键词 "${trimmed}" 提取为: "${code}"`, 'info');
                 } else if (isValidName) {
-                    processedKeywords.add(name);
+                    processedKeywords.set(name, { type: 'name', original: trimmed });
                     if (trimmed !== name) addLog(`关键词 "${trimmed}" 清理为: "${name}"`, 'info');
                 } else {
                     const cleaned = cleanSequenceNumbers(cleanBookQuotes(trimmed)).trim();
                     const cleanedForFinalCheck = cleaned.replace(/[\t\s]/g, '');
                     if (cleaned && !/^[（(]?\d+[）)\]]*$/.test(cleanedForFinalCheck)) {
-                        processedKeywords.add(cleaned);
-                        if (trimmed !== cleaned) addLog(`关键词 "${trimmed}" 清理后为: "${cleaned}"`, 'info');
+                        const finalCleaned = cleaned.replace(/\(+$/, '').replace(/^\)+/, '').trim();
+                        processedKeywords.set(finalCleaned, { type: 'unknown', original: trimmed });
+                        if (trimmed !== finalCleaned) addLog(`关键词 "${trimmed}" 清理后为: "${finalCleaned}"`, 'info');
                     } else {
                         addLog(`跳过无效内容: "${trimmed}"`, 'info');
                     }
                 }
             });
             
-            // 最终过滤有效关键词
-            const result = Array.from(processedKeywords).filter(k => {
-                const cleaned = k.replace(/[\t\s]/g, '');
-                const isSequence = /^[（(]?\d+[）)\]]*$/.test(cleaned);
-                return !isSequence && k.trim().length > 0;
-            });
+            const result = Array.from(processedKeywords.entries()).map(([keyword, info]) => ({
+                keyword,
+                type: info.type,
+                original: info.original
+            }));
             
-            console.log(`最终关键词列表:`, result);
+            console.log(`最终关键词列表（保持输入顺序）:`, result);
             return result;
         }
 
@@ -612,20 +780,22 @@
 			}
 		}
 
-        // ==================== 主要查询函数 ====================
+        // ==================== 主要查询函数（多线并发版本） ====================
         async function startSearch() {
             if (isSearching) return;
             const keywordInput = document.getElementById('keywordInput').value.trim();
             if (!keywordInput) { alert('请输入查询关键词！'); return; }
             if (selectedSites.length === 0) { alert('请至少选择一个查询网站！'); return; }
 
-            const keywords = parseKeywords(keywordInput);
-            if (keywords.length === 0) {
+            const keywordInfos = parseKeywords(keywordInput);
+            if (keywordInfos.length === 0) {
                 alert('未找到有效的查询关键词，请检查输入内容！');
                 return;
             }
             
-            // 初始化查询状态
+            const keywords = keywordInfos.map(info => info.keyword);
+            processedKeywords = keywordInfos;
+            
             allKeywords = keywords;
             keywordsWithNoExactMatch.clear();
             keywordsWithValidResults.clear();
@@ -633,7 +803,6 @@
             searchCancelled = false;
             searchResults = [];
 
-            // 更新页面UI状态
             document.getElementById('startBtn').disabled = true;
             document.getElementById('cancelBtn').disabled = false;
             document.getElementById('exportBtn').disabled = true;
@@ -646,113 +815,107 @@
 
             addLog(`开始查询，共 ${keywords.length} 个有效关键词`, 'success');
             addLog(`选择的网站: ${selectedSites.map(id => document.getElementById(id).nextElementSibling.querySelector('.website-name').textContent).join(', ')}`, 'info');
+            addLog(`启用多线并发查询，最多6个并发`, 'info');
 
             try {
-                for (let i = 0; i < keywords.length; i++) {
+                const CONCURRENCY_LIMIT = 6;
+                const totalKeywords = keywords.length;
+                const allKeywordResults = [];
+                
+                for (let i = 0; i < totalKeywords; i += CONCURRENCY_LIMIT) {
                     if (searchCancelled) break;
-                    const keyword = keywords[i];
-                    const progressPercent = ((i) / keywords.length) * 100;
                     
-                    updateProgress(progressPercent, `查询中：${keyword}`);
-                    addLog(`查询关键词: ${keyword}`, 'info');
-
-                    let keywordHasExactMatch = false;
-                    let keywordHasAnyValidResult = false;
-                    let currentKeywordValidResults = [];
-
-                    // 遍历选中的网站进行查询
-                    for (const siteId of selectedSites) {
-                        if (searchCancelled) break;
-                        if (keywordHasAnyValidResult) {
-                            addLog(`  ${document.getElementById(siteId).nextElementSibling.querySelector('.website-name').textContent}：关键词已有有效结果，跳过无结果记录`, 'info');
-                            continue;
-                        }
-
-                        const siteName = document.getElementById(siteId).nextElementSibling.querySelector('.website-name').textContent;
-                        addLog(`  正在查询${siteName}...`, 'info');
+                    const batch = keywords.slice(i, i + CONCURRENCY_LIMIT);
+                    const batchPromises = batch.map((keyword, batchIndex) => 
+                        searchKeywordConcurrently(keyword, i + batchIndex, totalKeywords)
+                    );
+                    
+                    const batchResults = await Promise.all(batchPromises);
+                    allKeywordResults.push(...batchResults);
+                    
+                    const progressPercent = Math.min(((i + batch.length) / totalKeywords) * 100, 100);
+                    updateProgress(progressPercent, `并发查询中...`);
+                    
+                    if (i + CONCURRENCY_LIMIT < totalKeywords && !searchCancelled) {
+                        await delay(800);
+                    }
+                }
+                
+                if (searchCancelled) {
+                    addLog('查询已被用户取消', 'warning');
+                } else {
+                    updateProgress(100, '查询完成，正在处理结果...');
+                    
+                    const orderedResults = [];
+                    
+                    processedKeywords.forEach(keywordInfo => {
+                        const keyword = keywordInfo.keyword;
+                        const keywordResult = allKeywordResults.find(r => r.keyword === keyword);
                         
-                        try {
-                            let results = [];
-                            if (siteId === 'site1') results = await querySite1(keyword);
-                            else if (siteId === 'site2') {
-                                const nationalResults = await querySite2National(keyword);
-                                const industryResults = await querySite2Industry(keyword);
-                                results = [...nationalResults, ...industryResults];
-                                results = removeDuplicates(results);
-                            }
-                            else if (siteId === 'site3') results = await querySite3(keyword);
-
-                            if (results.length > 0) {
-                                const hasExactMatch = results.some(r => r.match === '●');
-                                if (hasExactMatch) keywordHasExactMatch = true;
-                                keywordHasAnyValidResult = true;
-                                keywordsWithValidResults.add(keyword);
-
-                                currentKeywordValidResults.push(...results);
-                                addLog(`    找到 ${results.length} 条有效结果`, 'success');
-                            } else {
-                                addLog(`    未找到相关结果`, 'warning');
-                                const noResultItem = {
-                                    keyword: keyword,
-                                    code: '-',
-                                    name: '-',
-                                    status: '-',
-                                    date: '-',
-                                    site: siteName,
-                                    match: '○',
-                                    queryStatus: '无搜索结果'
-                                };
-                                currentKeywordValidResults.push(noResultItem);
-                            }
-                        } catch (err) {
-                            addLog(`    ${siteName}查询失败: ${err.message}`, 'error');
-                            const errorResultItem = {
+                        if (keywordResult && keywordResult.results.length > 0) {
+                            const resultsWithInfo = keywordResult.results.map(result => ({
+                                ...result,
+                                originalKeyword: keywordInfo.original,
+                                keywordType: keywordInfo.type,
+                                queryStatus: '有搜索结果'
+                            }));
+                            orderedResults.push(...resultsWithInfo);
+                        } else {
+                            const noResultItem = {
                                 keyword: keyword,
                                 code: '-',
                                 name: '-',
                                 status: '-',
                                 date: '-',
-                                site: siteName,
+                                site: '所有网站',
                                 match: '○',
-                                queryStatus: '查询异常'
+                                queryStatus: '无搜索结果',
+                                similarity: 0,
+                                originalKeyword: keywordInfo.original,
+                                keywordType: keywordInfo.type,
+                                isNoResult: true
                             };
-                            if (!keywordHasAnyValidResult) currentKeywordValidResults.push(errorResultItem);
+                            orderedResults.push(noResultItem);
+                            addLog(`关键词 "${keyword}" 在所有网站均未找到匹配结果`, 'warning');
                         }
-                    }
+                    });
                     
-                    // 收集查询结果并更新表格
-                    if (keywordHasAnyValidResult) {
-                        const validOnlyResults = currentKeywordValidResults.filter(item => item.queryStatus === '有搜索结果');
-                        searchResults.push(...validOnlyResults);
-                        updateResultsTable(validOnlyResults, false);
+                    searchResults = orderedResults;
+                    
+                    const resultsWithContent = orderedResults.filter(r => !r.isNoResult);
+                    const noResultRows = orderedResults.filter(r => r.isNoResult);
+                    
+                    let finalResults = [];
+                    if (resultsWithContent.length > 0) {
+                        let processedResults = deduplicateResults(resultsWithContent);
+                        processedResults = mergeExactMatchResults(processedResults);
+                        // 新增：过滤与合并结果相关的部分匹配
+                        processedResults = filterPartialMatchesAfterMerge(processedResults);
+                        finalResults = [...processedResults, ...noResultRows];
                     } else {
-                        searchResults.push(...currentKeywordValidResults);
-                        updateResultsTable(currentKeywordValidResults, false);
+                        finalResults = noResultRows;
                     }
                     
-                    if (!keywordHasExactMatch) keywordsWithNoExactMatch.add(keyword);
-                    updateProgress(((i+1) / keywords.length) * 100, `处理进度`);
-                    if (i < keywords.length - 1 && !searchCancelled) await delay(1200);
-                }
-
-                // 处理查询结果（去重+合并精确匹配）
-                if (searchCancelled) {
-                    addLog('查询已被用户取消', 'warning');
-                } else {
-                    updateProgress(100, '查询完成，正在合并精确匹配结果...');
-                    let finalResults = deduplicateResults(searchResults);
-                    finalResults = mergeExactMatchResults(finalResults);
+                    finalResults.sort((a, b) => {
+                        const indexA = processedKeywords.findIndex(k => k.keyword === a.keyword);
+                        const indexB = processedKeywords.findIndex(k => k.keyword === b.keyword);
+                        return indexA - indexB;
+                    });
+                    
                     searchResults = finalResults;
                     
-                    // 更新最终结果展示
                     updateResultsTable(finalResults, true);
                     document.getElementById('resultsCount').textContent = `共 ${finalResults.length} 条结果`;
                     updateNoExactMatchDisplay();
 
                     if (finalResults.length > 0) {
                         document.getElementById('exportBtn').disabled = false;
+                        const resultCount = finalResults.filter(r => !r.isNoResult).length;
+                        const noResultCount = finalResults.filter(r => r.isNoResult).length;
                         const mergedCount = finalResults.filter(r => r.isMerged).length;
-                        addLog(`查询完成！共找到 ${finalResults.length} 条有效结果（含 ${mergedCount} 条精确匹配合并结果）`, 'success');
+                        const filteredPartialCount = resultsWithContent.length - resultCount + mergedCount;
+                        
+                        addLog(`查询完成！共找到 ${resultCount} 条有效结果（含 ${mergedCount} 条精确匹配合并结果，过滤 ${filteredPartialCount} 条相关部分匹配），${noResultCount} 个关键词无搜索结果`, 'success');
                     } else {
                         addLog('查询完成，但未找到任何有效结果', 'warning');
                     }
@@ -874,13 +1037,16 @@
                     name = cleanSequenceNumbers(name);
                     if (code && name.includes(code)) name = name.replace(code, '').trim();
                     
+                    const similarity = calculateSimilarity(keyword, name);
+                    
                     results.push({
                         keyword, code, name,
                         status: statusEl ? statusEl.textContent.trim() : '现行',
                         date: dateEl ? dateEl.textContent.trim() : '',
                         site: '国家标准网站',
                         match: isExactMatch(keyword, code, name),
-                        queryStatus: '有搜索结果'
+                        queryStatus: '有搜索结果',
+                        similarity: similarity
                     });
                     count++;
                 } catch (e) {}
@@ -942,6 +1108,8 @@
                         }
                     });
                     
+                    const similarity = calculateSimilarity(keyword, name);
+                    
                     if (code || name) {
                         results.push({
                             keyword, code, name,
@@ -949,7 +1117,8 @@
                             date: date,
                             site: '建筑标准网站',
                             match: isExactMatch(keyword, code, name),
-                            queryStatus: '有搜索结果'
+                            queryStatus: '有搜索结果',
+                            similarity: similarity
                         });
                         count++;
                     }
@@ -978,13 +1147,16 @@
                     
                     if (date.includes('T')) date = date.split('T')[0];
                     
+                    const similarity = calculateSimilarity(keyword, name);
+                    
                     results.push({
                         keyword, code, name,
                         status: item.StandardState || '现行',
                         date: date,
                         site: '工程建设标准化信息网',
                         match: isExactMatch(keyword, code, name),
-                        queryStatus: '有搜索结果'
+                        queryStatus: '有搜索结果',
+                        similarity: similarity
                     });
                 });
             }
@@ -1046,20 +1218,47 @@
             
             results.forEach(result => {
                 const row = document.createElement('tr');
-                const matchClass = result.match === '●' ? 'match-exact' : 'match-partial';
+                
+                if (result.isNoResult) {
+                    row.classList.add('no-result-row');
+                } else if (result.isMerged) {
+                    row.classList.add('merged-result');
+                }
+                
+                const matchClass = result.match === '●' ? 'match-exact' : 
+                                  result.match === '○' ? 'match-partial' : 'match-none';
                 const matchHtml = `<span class="match-indicator ${matchClass}">${result.match}</span>`;
                 
                 let keywordDisplay = result.keyword;
                 let codeDisplay = result.code || '-';
                 let nameDisplay = result.name || '-';
+                let statusDisplay = result.status || '-';
+                let queryStatusDisplay = result.queryStatus || '未知';
+                let dateDisplay = result.date || '-';
+                let siteDisplay = result.site || '-';
                 
-                // 高亮显示合并结果
-                if (result.isMerged) {
-                    keywordDisplay = `<span title="精确匹配合并结果" style="color: #1a73e8; font-weight: 600;">${result.keyword}</span>`;
+                let similarityDisplay = '-';
+                if (result.similarity !== undefined && result.similarity > 0) {
+                    const similarityColor = result.similarity >= 80 ? '#34a853' : 
+                                          result.similarity >= 60 ? '#ff9800' : '#ea4335';
+                    similarityDisplay = `<span class="similarity-badge" style="background-color: ${similarityColor}20; color: ${similarityColor}; border: 1px solid ${similarityColor}40;">${result.similarity}%</span>`;
+                }
+                
+                if (result.isNoResult) {
+                    keywordDisplay = `<span class="no-result-cell">${keywordDisplay}</span>`;
+                    codeDisplay = `<span class="no-result-cell">${codeDisplay}</span>`;
+                    nameDisplay = `<span class="no-result-cell">${nameDisplay}</span>`;
+                    statusDisplay = `<span class="no-result-cell">${statusDisplay}</span>`;
+                    queryStatusDisplay = `<span class="no-result-cell" style="color: #dc3545; font-weight: bold;">${queryStatusDisplay}</span>`;
+                    dateDisplay = `<span class="no-result-cell">${dateDisplay}</span>`;
+                    siteDisplay = `<span class="no-result-cell">${siteDisplay}</span>`;
+                    similarityDisplay = `<span class="no-result-cell">-</span>`;
+                } else if (result.isMerged) {
+                    keywordDisplay = `<span class="merged-keyword" title="精确匹配合并结果（来自多个关键词）">${keywordDisplay} </span>`;
                     codeDisplay = `<strong style="color: #34a853;">${codeDisplay}</strong>`;
                     nameDisplay = `<span style="color: #34a853;">${nameDisplay}</span>`;
                 } else {
-                    const isFromSplit = allKeywords.length > rawKeywords?.length || result.keyword.includes('GB') || result.keyword.includes('JGJ') || result.keyword.includes('DBJ');
+                    const isFromSplit = result.keywordType === 'code' || result.keywordType === 'name';
                     if (isFromSplit) keywordDisplay = `<span title="从组合关键词拆分">${result.keyword} 📋</span>`;
                 }
                 
@@ -1067,11 +1266,12 @@
                     <td>${keywordDisplay}</td>
                     <td>${codeDisplay}</td>
                     <td>${nameDisplay}</td>
-                    <td>${result.status || '-'}</td>
-                    <td>${result.queryStatus || '未知'}</td>
-                    <td>${result.date || '-'}</td>
-                    <td>${result.site || '-'}</td>
-                    <td>${matchHtml}</td>`;
+                    <td>${statusDisplay}</td>
+                    <td>${queryStatusDisplay}</td>
+                    <td>${dateDisplay}</td>
+                    <td>${siteDisplay}</td>
+                    <td>${matchHtml}</td>
+                    <td>${similarityDisplay}</td>`;
                 tbody.appendChild(row);
             });
             
@@ -1094,7 +1294,7 @@
         function exportResults() {
             if (searchResults.length === 0) return;
             
-            const headers = ['关键词', '规范代号', '规范名称', '状态', '查询状态', '实施日期', '来源网站', '匹配状态', '是否合并'];
+            const headers = ['关键词', '规范代号', '规范名称', '状态', '查询状态', '实施日期', '来源网站', '匹配状态', '名称匹配度', '是否合并', '有无结果'];
             const csvRows = [
                 headers.join(','),
                 ...searchResults.map(r => [
@@ -1106,18 +1306,23 @@
                     `"${r.date || '-'}"`, 
                     `"${r.site || '-'}"`, 
                     `"${r.match}"`,
-                    `"${r.isMerged ? '是' : '否'}"`
+                    `"${r.similarity || '-'}"`,
+                    `"${r.isMerged ? '是' : '否'}"`,
+                    `"${r.isNoResult ? '无结果' : '有结果'}"`
                 ].join(','))
             ];
             
-            // 添加统计信息
             csvRows.push('');
             csvRows.push('"查询统计信息"');
             csvRows.push(`"查询关键词总数",${allKeywords.length}`);
-            csvRows.push(`"找到结果总数",${searchResults.length}`);
+            const resultCount = searchResults.filter(r => !r.isNoResult).length;
+            const noResultCount = searchResults.filter(r => r.isNoResult).length;
+            csvRows.push(`"找到结果总数",${resultCount}`);
+            csvRows.push(`"无结果关键词数",${noResultCount}`);
             const mergedCount = searchResults.filter(r => r.isMerged).length;
             csvRows.push(`"精确匹配合并结果数",${mergedCount}`);
             csvRows.push(`"有有效结果的关键词数",${keywordsWithValidResults.size}`);
+            csvRows.push(`"未找到精确匹配的关键词数",${keywordsWithNoExactMatch.size}`);
             
             if (keywordsWithNoExactMatch.size > 0) {
                 csvRows.push('');
@@ -1129,7 +1334,6 @@
                 }
             }
             
-            // 生成并下载CSV文件
             const csv = csvRows.join('\n');
             const blob = new Blob(['\ufeff' + csv], {type: 'text/csv;charset=utf-8;'});
             const link = document.createElement('a');
@@ -1140,7 +1344,7 @@
             document.body.removeChild(link);
             URL.revokeObjectURL(link.href);
             
-            addLog(`已导出 ${searchResults.length} 条结果（含 ${mergedCount} 条合并结果）到CSV文件`, 'success');
+            addLog(`已导出 ${searchResults.length} 条结果到CSV文件（含 ${noResultCount} 条无结果记录）`, 'success');
         }
 
         function cancelSearch() {
@@ -1161,6 +1365,7 @@
             searchResults = [];
             allKeywords = [];
             rawKeywords = [];
+            processedKeywords = [];
             keywordsWithNoExactMatch.clear();
             keywordsWithValidResults.clear();
             
@@ -1178,10 +1383,13 @@
         document.addEventListener('DOMContentLoaded', function() {
             addLog('建设行业规范查询工具已就绪', 'success');
             addLog('提示：● 表示精确匹配，○ 表示部分匹配', 'info');
-            addLog('支持双向拆分：编号在前/在后均能正确提取关键词', 'info');
+            addLog('支持多线并发查询（最多6个并发）', 'info');
+            addLog('名称关键词匹配度低于60%的结果将自动过滤', 'info');
+            addLog('所有查询词条都会在结果表格中显示，无结果时标记"无搜索结果"', 'info');
+            addLog('已修复不完整括号规范（如"组合结构设计规范(JGJ133-2016"）的拆分问题', 'info');
+            addLog('当出现"精确匹配合并结果"时，不再显示拆分关键词的其他搜索结果', 'info');
             detectCorsExtension();
         });
     </script>
 </body>
 </html>
-
