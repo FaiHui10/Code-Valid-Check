@@ -30,8 +30,45 @@
         .btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .progress-bar { height: 6px; background: #e0e0e0; border-radius: 3px; margin: 15px 0 10px; overflow: hidden; }
         .progress-fill { height: 100%; background: #1a73e8; width: 0%; transition: width 0.3s; }
-        .log-container { background: #1e1e1e; color: #fff; border-radius: 6px; padding: 12px; font-family: 'Consolas', monospace; font-size: 12px; max-height: 200px; overflow-y auto; margin-top: 15px; line-height: 1.4; }
-        .log-entry { margin-bottom: 4px; padding-bottom: 4px; border-bottom: 1px solid #333; }
+        .log-container { 
+            background: #1e1e1e; 
+            color: #fff; 
+            border-radius: 6px; 
+            padding: 12px; 
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace; 
+            font-size: 12px; 
+            max-height: 200px; 
+            overflow-y: auto; 
+            margin-top: 15px; 
+            line-height: 1.4;
+            /* 滚动条样式 */
+            scrollbar-width: thin;
+            scrollbar-color: #666 #1e1e1e;
+        }
+        /* Webkit 浏览器滚动条样式 */
+        .log-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        .log-container::-webkit-scrollbar-track {
+            background: #1e1e1e;
+            border-radius: 4px;
+        }
+        .log-container::-webkit-scrollbar-thumb {
+            background: #666;
+            border-radius: 4px;
+        }
+        .log-container::-webkit-scrollbar-thumb:hover {
+            background: #888;
+        }
+        .log-entry { 
+            margin-bottom: 4px; 
+            padding-bottom: 4px; 
+            border-bottom: 1px solid #333; 
+            word-wrap: break-word;
+            word-break: break-word;
+            white-space: pre-wrap;
+        }
+        .log-entry:last-child { border-bottom: none; }
         .log-time { color: #999; margin-right: 8px; }
         .log-success { color: #4caf50; }
         .log-error { color: #f44336; }
@@ -51,7 +88,7 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .instructions { background: #e3f2fd; border-left: 4px solid #1a73e8; padding: 10px 12px; margin: 15px 0; font-size: 16px; border-radius: 4px; }
         .center-img { display: block; margin: 0 auto; }
-		.summary-box { background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 6px; padding: 10px; margin-top: 10px; font-size: 13px; }
+        .summary-box { background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 6px; padding: 10px; margin-top: 10px; font-size: 13px; }
         .cors-warning { background: #fef0f0; border-left: 4px solid #dc3545; padding: 12px 15px; margin: 15px 0; font-size: 13px; border-radius: 4px; }
         .keyword-tag { background: #e3f2fd; border-radius: 4px; padding: 2px 6px; margin: 0 2px; font-size: 12px; color: #1a73e8; }
         .similarity-badge { display: inline-block; background: #e3f2fd; border-radius: 10px; padding: 1px 6px; font-size: 11px; margin-left: 5px; color: #1a73e8; }
@@ -72,20 +109,20 @@
             <div class="section">
                 <div class="section-title">📌 注意事项</div>
                 <div id="corsTip" class="cors-warning" style="display: none;">
-					<strong>⚠️ 重要提示：</strong>
-					<p>未检测到Allow CORS扩展！为确保查询功能正常使用，请安装对应插件：</p>
-					<p>Edge插件：<a href="https://microsoftedge.microsoft.com/addons/detail/allow-cors-accesscontro/bhjepjpgngghppolkjdhckmnfphffdag" target="_blank" style="color: #1a73e8; text-decoration: underline;">Edge 扩展项商店</a></p>
-					<p>提示：安装后需启用扩展，并刷新当前页面</p>
-				</div>
+                    <strong>⚠️ 重要提示：</strong>
+                    <p>未检测到Allow CORS扩展！为确保查询功能正常使用，请安装对应插件：</p>
+                    <p>Edge插件：<a href="https://microsoftedge.microsoft.com/addons/detail/allow-cors-accesscontro/bhjepjpgngghppolkjdhckmnfphffdag" target="_blank" style="color: #1a73e8; text-decoration: underline;">Edge 扩展项商店</a></p>
+                    <p>提示：安装后需启用扩展，并刷新当前页面</p>
+                </div>
                 <div class="instructions">
                     <p><strong>使用说明：</strong></p> 
                     <p>0. 由于GOOGLE CHROME浏览器的扩展商店不容易连接上，建议使用<strong style="color: red;">Microsoft EDGE浏览器运行本页面</strong>。</p>
-					<p>1. 请确保浏览器的CORS扩展（如"Allow CORS: Access-Control-Allow-Origin"插件）已启用，并允许访问网址。</p>
-					<p>2. 本网页可多网站并发查询规范版本的有效性，用户勾选下方网站进行查询，优先仅选择<strong>工程建设标准化信息网</strong>。</p>
+                    <p>1. 请确保浏览器的CORS扩展（如"Allow CORS: Access-Control-Allow-Origin"插件）已启用，并允许访问网址。</p>
+                    <p>2. 本网页可多网站并发查询规范版本的有效性，用户勾选下方网站进行查询，优先仅选择<strong>工程建设标准化信息网</strong>。</p>
                     <p>3. <strong>双击下列</strong>网站区域，可在新窗口直接访问其官网。</p>
                     <p>4. 对于每个关键词，每个网站最多返回10条结果，如果没有搜索到结果，用户自行查核。</p>
                     <p>5. 地标、协会标之类的建议用户自行查核。</p>
-					<p>6. 可以尝试登录国家标准馆查询规范标准（批量查询需要账号）<a href="https://www.ndls.org.cn/" target="_blank" rel="noopener noreferrer">https://www.ndls.org.cn/</a></p>
+                    <p>6. 可以尝试登录国家标准馆查询规范标准（批量查询需要账号）<a href="https://www.ndls.org.cn/" target="_blank" rel="noopener noreferrer">https://www.ndls.org.cn/</a></p>
                     <p>7. <strong>智能拆分：</strong>支持"GB 50009-2012 建筑结构荷载规范"（编号在后）和"JGJ/T235-2011 建筑外墙防水工程技术规程"（编号在前）自动拆分</p>
                 </div>
                 <div class="websites-grid">
@@ -159,7 +196,7 @@
                 <div class="section-title">📝 执行日志 <button class="btn" onclick="clearLog()" style="background:#6c757d;color:white;padding:4px 10px;font-size:12px;margin-left:auto;">清空</button></div>
                 <div class="log-container" id="logContainer"></div>
             </div>
-			<p><img src="https://visitor-badge.laobi.icu/badge?page_id=faihui10.github.io/Code-Valid-Check" class="center-img"></p>
+            <p><img src="https://visitor-badge.laobi.icu/badge?page_id=faihui10.github.io/Code-Valid-Check" class="center-img"></p>
         </div>
     </div>
 
@@ -750,35 +787,35 @@
         });
 
         // ==================== CORS扩展自动检测 ====================
-		async function detectCorsExtension() {
-			try {
-				const testUrl = 'https://www.baidu.com/favicon.ico'; 
-				const response = await fetch(testUrl, {
-					method: 'HEAD',
-					mode: 'cors',
-					cache: 'no-cache',
-					signal: AbortSignal.timeout(5000)
-				});
-				addLog('已检测到Allow CORS扩展（或浏览器CORS配置正常）', 'success');
-				return true;
-			} catch (error) {
-				const errorMsg = (error.message || '').toLowerCase();
-				const corsErrorKeywords = [
-					'cors', '跨域', 'failed to fetch', 'access-control',
-					'blocked', 'net::err', 'not allowed', 'preflight'
-				];
-				
-				const isCorsError = corsErrorKeywords.some(keyword => errorMsg.includes(keyword));
-				if (isCorsError) {
-					addLog('未检测到Allow CORS扩展，将显示安装提示', 'warning');
-					document.getElementById('corsTip').style.display = 'block';
-					return false;
-				}
-				
-				addLog(`CORS检测异常（非扩展问题）：${error.message}`, 'info');
-				return true;
-			}
-		}
+        async function detectCorsExtension() {
+            try {
+                const testUrl = 'https://www.baidu.com/favicon.ico'; 
+                const response = await fetch(testUrl, {
+                    method: 'HEAD',
+                    mode: 'cors',
+                    cache: 'no-cache',
+                    signal: AbortSignal.timeout(5000)
+                });
+                addLog('已检测到Allow CORS扩展（或浏览器CORS配置正常）', 'success');
+                return true;
+            } catch (error) {
+                const errorMsg = (error.message || '').toLowerCase();
+                const corsErrorKeywords = [
+                    'cors', '跨域', 'failed to fetch', 'access-control',
+                    'blocked', 'net::err', 'not allowed', 'preflight'
+                ];
+                
+                const isCorsError = corsErrorKeywords.some(keyword => errorMsg.includes(keyword));
+                if (isCorsError) {
+                    addLog('未检测到Allow CORS扩展，将显示安装提示', 'warning');
+                    document.getElementById('corsTip').style.display = 'block';
+                    return false;
+                }
+                
+                addLog(`CORS检测异常（非扩展问题）：${error.message}`, 'info');
+                return true;
+            }
+        }
 
         // ==================== 主要查询函数（多线并发版本） ====================
         async function startSearch() {
