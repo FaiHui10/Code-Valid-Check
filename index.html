@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>建设行业规范版本有效性查询</title>
+    <title>建设行业规范版本有效性查询（完整兼容版）</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 20px; color: #333; }
@@ -96,6 +96,7 @@
         .no-result-cell { color: #6c757d !important; font-style: italic; }
         .merged-result { background-color: #f0f9f4 !important; }
         .merged-keyword { color: #1a73e8 !important; font-weight: 600; }
+        .obsolete-status { color: #dc3545 !important; font-weight: bold !important; }
     </style>
 </head>
 <body>
@@ -124,6 +125,7 @@
                     <p>5. 地标、协会标之类的建议用户自行查核。</p>
                     <p>6. 可以尝试登录国家标准馆查询规范标准（批量查询需要账号）<a href="https://www.ndls.org.cn/" target="_blank" rel="noopener noreferrer">https://www.ndls.org.cn/</a></p>
                     <p>7. <strong>智能拆分：</strong>支持"GB 50009-2012 建筑结构荷载规范"（编号在后）和"JGJ/T235-2011 建筑外墙防水工程技术规程"（编号在前）自动拆分</p>
+                    <p>8. <strong>状态显示：</strong>非现行规范（如废止、作废等）将以<strong style="color: #dc3545;">红色粗体</strong>显示</p>
                 </div>
                 <div class="websites-grid">
                     <label class="website-item selected" id="websiteItem1" ondblclick="window.open('https://std.samr.gov.cn', '_blank')">
@@ -216,6 +218,32 @@
         let keywordsWithValidResults = new Set();
         let rawKeywords = [];
         let processedKeywords = [];
+
+        // ==================== 判断规范状态是否为非现行 ====================
+        function isObsoleteStatus(status) {
+            if (!status) return false;
+            const statusStr = status.toString().toLowerCase().trim();
+            // 常见的非现行状态关键词
+            const obsoleteKeywords = [
+                '废止', '废止/作废', '作废', '被代替', '被替代',
+                '失效', '淘汰', '过期', '已废止', '已作废',
+                '废止(失效)', '废止/失效', '废止（失效）'
+            ];
+            
+            // 如果状态不等于"现行"，则认为是非现行
+            if (statusStr !== '现行') {
+                // 检查是否包含常见的废止关键词
+                for (const keyword of obsoleteKeywords) {
+                    if (statusStr.includes(keyword.toLowerCase())) {
+                        return true;
+                    }
+                }
+                // 如果不是"现行"但也不包含常见的废止关键词，仍然认为是非现行
+                // 这样可以捕捉到一些非标准的状态描述
+                return true;
+            }
+            return false;
+        }
 
         // ==================== 核心工具函数 ====================
         function addLog(msg, type='info') {
@@ -1248,6 +1276,7 @@
             return Array.from(map.values());
         }
 
+        // ==================== 更新结果表格函数（新增状态颜色判断） ====================
         function updateResultsTable(results, replace=false) {
             const tbody = document.getElementById('resultsBody');
             const table = document.getElementById('resultsTable');
@@ -1281,10 +1310,19 @@
                     similarityDisplay = `<span class="similarity-badge" style="background-color: ${similarityColor}20; color: ${similarityColor}; border: 1px solid ${similarityColor}40;">${result.similarity}%</span>`;
                 }
                 
+                // 检查规范状态是否为非现行
+                const isObsolete = isObsoleteStatus(result.status);
+                
+                // 构建状态显示HTML
+                if (isObsolete) {
+                    statusDisplay = `<span class="obsolete-status" title="非现行规范">${result.status}</span>`;
+                }
+                
                 if (result.isNoResult) {
                     keywordDisplay = `<span class="no-result-cell">${keywordDisplay}</span>`;
                     codeDisplay = `<span class="no-result-cell">${codeDisplay}</span>`;
                     nameDisplay = `<span class="no-result-cell">${nameDisplay}</span>`;
+                    // 无结果行的状态不需要特殊样式
                     statusDisplay = `<span class="no-result-cell">${statusDisplay}</span>`;
                     queryStatusDisplay = `<span class="no-result-cell" style="color: #dc3545; font-weight: bold;">${queryStatusDisplay}</span>`;
                     dateDisplay = `<span class="no-result-cell">${dateDisplay}</span>`;
@@ -1294,9 +1332,17 @@
                     keywordDisplay = `<span class="merged-keyword" title="精确匹配合并结果（来自多个关键词）">${keywordDisplay} </span>`;
                     codeDisplay = `<strong style="color: #34a853;">${codeDisplay}</strong>`;
                     nameDisplay = `<span style="color: #34a853;">${nameDisplay}</span>`;
+                    // 合并结果的状态也需要检查是否为非现行
+                    if (isObsolete) {
+                        statusDisplay = `<span class="obsolete-status" title="非现行规范">${result.status}</span>`;
+                    }
                 } else {
                     const isFromSplit = result.keywordType === 'code' || result.keywordType === 'name';
                     if (isFromSplit) keywordDisplay = `<span title="从组合关键词拆分">${result.keyword} 📋</span>`;
+                    // 普通结果的状态也需要检查是否为非现行
+                    if (isObsolete) {
+                        statusDisplay = `<span class="obsolete-status" title="非现行规范">${result.status}</span>`;
+                    }
                 }
                 
                 row.innerHTML = `
@@ -1313,6 +1359,12 @@
             });
             
             if (tbody.children.length > 0) table.classList.add('visible');
+            
+            // 如果有非现行规范，在日志中添加提示
+            const obsoleteCount = results.filter(r => !r.isNoResult && isObsoleteStatus(r.status)).length;
+            if (obsoleteCount > 0) {
+                addLog(`发现 ${obsoleteCount} 条非现行规范（已用红色粗体标出）`, 'warning');
+            }
         }
 
         function updateNoExactMatchDisplay() {
@@ -1354,10 +1406,12 @@
             csvRows.push(`"查询关键词总数",${allKeywords.length}`);
             const resultCount = searchResults.filter(r => !r.isNoResult).length;
             const noResultCount = searchResults.filter(r => r.isNoResult).length;
+            const mergedCount = searchResults.filter(r => r.isMerged).length;
+            const obsoleteCount = searchResults.filter(r => !r.isNoResult && isObsoleteStatus(r.status)).length;
             csvRows.push(`"找到结果总数",${resultCount}`);
             csvRows.push(`"无结果关键词数",${noResultCount}`);
-            const mergedCount = searchResults.filter(r => r.isMerged).length;
             csvRows.push(`"精确匹配合并结果数",${mergedCount}`);
+            csvRows.push(`"非现行规范数量",${obsoleteCount}`);
             csvRows.push(`"有有效结果的关键词数",${keywordsWithValidResults.size}`);
             csvRows.push(`"未找到精确匹配的关键词数",${keywordsWithNoExactMatch.size}`);
             
@@ -1371,6 +1425,15 @@
                 }
             }
             
+            if (obsoleteCount > 0) {
+                csvRows.push('');
+                csvRows.push('"非现行规范列表"');
+                const obsoleteResults = searchResults.filter(r => !r.isNoResult && isObsoleteStatus(r.status));
+                obsoleteResults.forEach(r => {
+                    csvRows.push(`"${r.code} - ${r.name} - ${r.status}"`);
+                });
+            }
+            
             const csv = csvRows.join('\n');
             const blob = new Blob(['\ufeff' + csv], {type: 'text/csv;charset=utf-8;'});
             const link = document.createElement('a');
@@ -1381,7 +1444,7 @@
             document.body.removeChild(link);
             URL.revokeObjectURL(link.href);
             
-            addLog(`已导出 ${searchResults.length} 条结果到CSV文件（含 ${noResultCount} 条无结果记录）`, 'success');
+            addLog(`已导出 ${searchResults.length} 条结果到CSV文件（含 ${noResultCount} 条无结果记录，${obsoleteCount} 条非现行规范）`, 'success');
         }
 
         function cancelSearch() {
@@ -1425,9 +1488,9 @@
             addLog('所有查询词条都会在结果表格中显示，无结果时标记"无搜索结果"', 'info');
             addLog('已修复不完整括号规范（如"组合结构设计规范(JGJ133-2016"）的拆分问题', 'info');
             addLog('当出现"精确匹配合并结果"时，不再显示拆分关键词的其他搜索结果', 'info');
+            addLog('非现行规范（如废止、作废等）将以<strong style="color: #dc3545;">红色粗体</strong>显示', 'info');
             detectCorsExtension();
         });
     </script>
 </body>
 </html>
-
