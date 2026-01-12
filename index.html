@@ -102,8 +102,8 @@
 <body>
     <div class="container">
         <header>
-            <h1>建设行业规范版本有效性查核（简化稳定版）</h1>
-            <div class="subtitle">支持多线并发查询 | 简化拆分逻辑 | 保持输入顺序</div>
+            <h1>建设行业规范版本有效性查核</h1>
+            <div class="subtitle">20260112@https://github.com/FaiHui10/Code-Valid-Check</div>
         </header>
 
         <div class="main-content">
@@ -154,7 +154,7 @@
 
             <div class="section">
                 <div class="section-title">⌨️ 输入查询关键词</div>
-                <textarea id="keywordInput" placeholder="请输入关键词，多个关键词用逗号、分号或换行分隔&#10;支持双向智能拆分：&#10;1. 编号在后：建筑结构荷载规范 GB 50009-2012 → 拆分为编号和名称&#10;2. 编号在前：JGJ/T235-2011 建筑外墙防水工程技术规程 → 拆分为编号和名称&#10;3. 序号清理：（1）建筑结构荷载规范 GB 50009-2021&#10;4. 书名号清理：《建筑设计防火规范》GB 50016&#10;5. 支持无空格代号：GB55019-2021&#10;6. 支持带/T规范：JGJ/T235-2011、DBJ/T15-19&#10;7. 支持地方标准：DBJ15-133-2018&#10;8. 支持带括号规范：组合结构设计规范(JGJ133-2016（即使括号不完整也能正确拆分）&#10;9. 支持版本信息：建筑结构荷载规范(2018版)、GB 50009-2012(2022年版)">JGJ/T235-2011 建筑外墙防水工程技术规程</textarea>
+                <textarea id="keywordInput" placeholder="请输入关键词，多个关键词用逗号、分号或换行分隔&#10;支持双向智能拆分：&#10;1. 编号在后：建筑结构荷载规范 GB 50009-2012 → 拆分为编号和名称&#10;2. 编号在前：JGJ/T235-2011 建筑外墙防水工程技术规程 → 拆分为编号和名称&#10;3. 序号清理：（1）建筑结构荷载规范 GB 50009-2021&#10;4. 书名号清理：《建筑设计防火规范》GB 50016&#10;5. 支持无空格代号：GB55019-2021&#10;6. 支持带/T规范：JGJ/T235-2011、DBJ/T15-19&#10;7. 支持地方标准：DBJ15-133-2018&#10;8. 支持带括号规范：组合结构设计规范(JGJ133-2016（即使括号不完整也能正确拆分）&#10;9. 支持版本信息：建筑结构荷载规范(2018版)、GB 50009-2012(2022年版)">JGJ/T235-2011 建筑外墙防水工程技术规</textarea>
             </div>
 
             <div class="section">
@@ -502,12 +502,6 @@
                 }
             }
             
-            // 情况4：如果关键词是原始的组合关键词，但被拆分成了代号和名称
-            // 这里记录一下不匹配的原因
-            if (code && name) {
-                addLog(`不匹配：关键词"${keyword}" (基础: "${kw}", 版本: "${kwVersion}") ≠ 代号"${result.code}" (基础: "${code}", 版本: "${resultCodeVersion}") 且 ≠ 名称"${result.name}" (基础: "${name}", 版本: "${resultNameVersion}")`, 'info');
-            }
-            
             return false;
         }
 
@@ -608,7 +602,7 @@
             };
         }
 
-        // ==================== 严格的合并检查函数（支持版本信息） ====================
+        // ==================== 严格的合并检查函数（必须所有关键词都完全匹配） ====================
         function shouldMergeResults(exactMatches) {
             if (exactMatches.length < 2) {
                 addLog(`需要至少2个完全匹配结果才能合并，当前只有${exactMatches.length}个`, 'info');
@@ -623,15 +617,39 @@
             addLog(`检查合并条件：目标规范 "${targetCode} - ${targetName}"`, 'info');
             addLog(`有 ${exactMatches.length} 个完全匹配结果需要检查`, 'info');
             
-            // 处理基准结果的版本信息
-            const targetCodeWithVersion = processTextWithVersion(targetCode, true);
-            const targetNameWithVersion = processTextWithVersion(targetName, false);
+            // 首先，收集所有完全匹配的关键词
+            const exactKeywords = new Set();
+            exactMatches.forEach(item => {
+                if (item.isExactMatch) {
+                    exactKeywords.add(item.keyword);
+                }
+            });
             
-            // 验证所有结果是否都指向同一个规范
-            for (let i = 0; i < exactMatches.length; i++) {
-                const result = exactMatches[i];
-                
-                // 处理当前结果的版本信息
+            addLog(`完全匹配的关键词: ${Array.from(exactKeywords).join(', ')}`, 'info');
+            
+            // 检查是否有来自同一原始关键词的拆分
+            const originalsMap = new Map();
+            exactMatches.forEach(item => {
+                if (item.originalKeyword) {
+                    if (!originalsMap.has(item.originalKeyword)) {
+                        originalsMap.set(item.originalKeyword, []);
+                    }
+                    originalsMap.get(item.originalKeyword).push(item.keyword);
+                }
+            });
+            
+            // 记录原始关键词的拆分情况
+            originalsMap.forEach((keywords, original) => {
+                addLog(`原始关键词 "${original}" 拆分为: ${keywords.join(', ')}`, 'info');
+            });
+            
+            // 检查是否所有完全匹配都指向同一个规范
+            const uniqueKeys = new Set();
+            const codeSet = new Set();
+            const nameSet = new Set();
+            
+            exactMatches.forEach(result => {
+                // 处理版本信息
                 const resultCodeWithVersion = processTextWithVersion(result.code, true);
                 const resultNameWithVersion = processTextWithVersion(result.name, false);
                 
@@ -641,52 +659,81 @@
                     return str.trim();
                 };
                 
-                const code1 = cleanForComparison(targetCodeWithVersion.cleanedText);
-                const code2 = cleanForComparison(resultCodeWithVersion.cleanedText);
-                const name1 = cleanForComparison(targetNameWithVersion.cleanedText);
-                const name2 = cleanForComparison(resultNameWithVersion.cleanedText);
+                const code = cleanForComparison(resultCodeWithVersion.cleanedText);
+                const name = cleanForComparison(resultNameWithVersion.cleanedText);
                 
-                // 代号基础部分必须完全一致（区分大小写）
-                if (code1 !== code2) {
-                    addLog(`❌ 不能合并：代号基础不一致 "${code1}" ≠ "${code2}"`, 'info');
-                    return false;
-                }
+                if (code) codeSet.add(code);
+                if (name) nameSet.add(name);
                 
-                // 名称基础部分必须完全一致（区分大小写）
-                if (name1 !== name2) {
-                    addLog(`❌ 不能合并：名称基础不一致 "${name1}" ≠ "${name2}"`, 'info');
-                    return false;
-                }
+                // 创建唯一标识（不考虑版本信息）
+                const uniqueKey = `${code}|${name}`;
+                uniqueKeys.add(uniqueKey);
+            });
+            
+            // 检查是否所有结果指向同一个规范
+            if (uniqueKeys.size !== 1) {
+                addLog(`❌ 不能合并：完全匹配结果指向不同的规范，共有 ${uniqueKeys.size} 个不同规范`, 'info');
+                return false;
+            }
+            
+            // 检查版本信息是否一致
+            const firstCodeWithVersion = processTextWithVersion(firstResult.code, true);
+            const firstNameWithVersion = processTextWithVersion(firstResult.name, false);
+            
+            for (let i = 1; i < exactMatches.length; i++) {
+                const result = exactMatches[i];
                 
-                // 检查版本信息是否一致
-                const codeVersion1 = targetCodeWithVersion.versionInfo;
+                // 处理当前结果的版本信息
+                const resultCodeWithVersion = processTextWithVersion(result.code, true);
+                const resultNameWithVersion = processTextWithVersion(result.name, false);
+                
+                // 检查代号版本信息是否一致
+                const codeVersion1 = firstCodeWithVersion.versionInfo;
                 const codeVersion2 = resultCodeWithVersion.versionInfo;
-                const nameVersion1 = targetNameWithVersion.versionInfo;
-                const nameVersion2 = resultNameWithVersion.versionInfo;
                 
-                // 如果都有版本信息，必须一致
                 if (codeVersion1 && codeVersion2 && codeVersion1 !== codeVersion2) {
                     addLog(`❌ 不能合并：代号版本不一致 "${codeVersion1}" ≠ "${codeVersion2}"`, 'info');
                     return false;
                 }
                 
+                // 检查名称版本信息是否一致
+                const nameVersion1 = firstNameWithVersion.versionInfo;
+                const nameVersion2 = resultNameWithVersion.versionInfo;
+                
                 if (nameVersion1 && nameVersion2 && nameVersion1 !== nameVersion2) {
                     addLog(`❌ 不能合并：名称版本不一致 "${nameVersion1}" ≠ "${nameVersion2}"`, 'info');
                     return false;
                 }
+            }
+            
+            // 现在检查关键部分：每个原始关键词的所有拆分是否都完全匹配这个规范
+            // 收集所有完全匹配的原始关键词
+            const allOriginalKeywords = new Set();
+            exactMatches.forEach(item => {
+                if (item.originalKeyword) {
+                    allOriginalKeywords.add(item.originalKeyword);
+                }
+            });
+            
+            // 对于每个原始关键词，检查其所有拆分是否都完全匹配
+            for (const originalKeyword of allOriginalKeywords) {
+                const matchesForOriginal = exactMatches.filter(item => 
+                    item.originalKeyword === originalKeyword
+                );
                 
-                // 检查每个关键词是否都完全匹配这个规范
-                const keyword = result.keyword;
-                const isExact = getExactMatchType(keyword, result);
-                if (!isExact) {
-                    addLog(`❌ 不能合并：关键词"${keyword}"不完全匹配规范"${code1} - ${name1}"`, 'info');
+                // 检查这个原始关键词的所有拆分是否都完全匹配
+                const allExact = matchesForOriginal.every(item => item.isExactMatch);
+                const allMatchSame = matchesForOriginal.length > 0;
+                
+                if (!allExact || !allMatchSame) {
+                    addLog(`❌ 不能合并：原始关键词"${originalKeyword}"的拆分结果不完全匹配规范"${targetCode} - ${targetName}"`, 'info');
                     return false;
                 }
             }
             
             // 收集所有关键词
             const keywords = exactMatches.map(item => item.keyword);
-            addLog(`✅ 所有完全匹配都指向同一个规范，关键词：${keywords.join(', ')}`, 'success');
+            addLog(`✅ 所有完全匹配都指向同一个规范，关键词：${Array.from(exactKeywords).join(', ')}`, 'success');
             
             return true;
         }
@@ -709,105 +756,318 @@
             return `${cleanCode}|${cleanName}|${codeVersion}`;
         }
 
-        function mergeExactMatchResults(results) {
-            const standardGroup = new Map();
-            
-            // 首先按规范分组（考虑版本信息）
-            results.forEach(result => {
-                const uniqueKey = getStandardUniqueKey(result.code, result.name);
-                
-                if (!standardGroup.has(uniqueKey)) {
-                    standardGroup.set(uniqueKey, {
-                        exactMatches: [],
-                        partialMatches: [],
-                        allResults: [],
-                        code: result.code,
-                        name: result.name
-                    });
-                }
-                
-                const group = standardGroup.get(uniqueKey);
-                group.allResults.push(result);
-                
-                if (result.isExactMatch) {
-                    group.exactMatches.push(result);
-                } else {
-                    group.partialMatches.push(result);
-                }
-            });
-            
-            const mergedResults = [];
-            
-            standardGroup.forEach(group => {
-                const { exactMatches, partialMatches, code, name } = group;
-                
-                // 只有当所有完全匹配都指向同一个规范时才合并
-                if (exactMatches.length >= 2 && shouldMergeResults(exactMatches)) {
-                    let mergedResult = {...exactMatches[0]};
-                    const mergedKeywords = new Set();
-                    const mergedSites = new Set();
-                    
-                    // 收集所有信息
-                    exactMatches.forEach(item => {
-                        mergedKeywords.add(item.keyword);
-                        mergedSites.add(item.site);
-                        
-                        // 保留最早的日期
-                        if (item.date && item.date !== '-' && (!mergedResult.date || mergedResult.date === '-')) {
-                            mergedResult.date = item.date;
-                        }
-                        
-                        // 如果任何结果状态为废止，则标记为废止
-                        if (item.status && item.status !== '现行') {
-                            mergedResult.status = item.status;
-                        }
-                    });
-                    
-                    mergedResult.keyword = `${mergedResult.name} ${mergedResult.code}`.trim();
-                    mergedResult.isMerged = true;
-                    mergedResult.match = '●';
-                    mergedResult.queryStatus = '完全匹配合并结果';
-                    mergedResult.mergedFrom = Array.from(mergedKeywords);
-                    mergedResult.mergedCount = exactMatches.length;
-                    mergedResult.site = Array.from(mergedSites).join(', ');
-                    
-                    mergedResults.push(mergedResult);
-                    
-                    addLog(`✅ 创建完全匹配合并结果: "${mergedResult.keyword}" (合并了 ${exactMatches.length} 个完全匹配: ${Array.from(mergedKeywords).join(', ')})`, 'success');
-                    
-                    // 标记这些关键词已经有合并结果
-                    exactMatches.forEach(item => {
-                        keywordsWithNoExactMatch.delete(item.keyword);
-                    });
-                } else if (exactMatches.length === 1) {
-                    // 只有一个完全匹配，不合并
-                    exactMatches[0].isMerged = false;
-                    mergedResults.push(exactMatches[0]);
-                    
-                    if (exactMatches.length > 1) {
-                        addLog(`❌ 不合并：虽然找到 ${exactMatches.length} 个完全匹配，但不满足合并条件`, 'info');
-                    } else {
-                        addLog(`ℹ️ 规范 "${code} - ${name}" 只有1个完全匹配结果，不合并`, 'info');
-                    }
-                } else {
-                    // 没有完全匹配
-                    addLog(`ℹ️ 规范 "${code} - ${name}" 没有完全匹配结果`, 'info');
-                }
-                
-                // 只有在没有完全匹配合并时才添加部分匹配
-                const hasMergedExactMatches = exactMatches.length >= 2 && shouldMergeResults(exactMatches);
-                if (!hasMergedExactMatches) {
-                    partialMatches.forEach(item => {
-                        item.isMerged = false;
-                        mergedResults.push(item);
-                    });
-                } else {
-                    addLog(`⚠️ 跳过 ${partialMatches.length} 个部分匹配结果（已有完全匹配合并）`, 'info');
-                }
-            });
-            
-            return deduplicateResults(mergedResults);
-        }
+        // ==================== 改进的合并逻辑：基于原始关键词和规范分组 ====================
+		function mergeExactMatchResults(results) {
+			// 第一步：按原始关键词和规范进行分组
+			const originalStandardMap = new Map();
+			
+			results.forEach(result => {
+				if (!result.isExactMatch) return; // 只处理完全匹配
+				
+				const originalKeyword = result.originalKeyword || result.keyword;
+				const standardKey = getStandardUniqueKey(result.code, result.name);
+				const combinedKey = `${originalKeyword}|${standardKey}`;
+				
+				if (!originalStandardMap.has(combinedKey)) {
+					originalStandardMap.set(combinedKey, {
+						originalKeyword: originalKeyword,
+						standardKey: standardKey,
+						code: result.code,
+						name: result.name,
+						exactMatches: [],
+						sites: new Set()
+					});
+				}
+				
+				const group = originalStandardMap.get(combinedKey);
+				group.exactMatches.push(result);
+				group.sites.add(result.site);
+				
+				// 保留最新的状态和日期信息
+				if (result.date && result.date !== '-') {
+					if (!group.date || group.date === '-') {
+						group.date = result.date;
+					}
+				}
+				
+				if (result.status && result.status !== '现行') {
+					if (!group.status || group.status === '现行') {
+						group.status = result.status;
+					}
+				}
+			});
+			
+			// 第二步：统计每个原始关键词有多少个不同的规范完全匹配
+			const originalStats = new Map();
+			originalStandardMap.forEach((group, combinedKey) => {
+				const originalKeyword = group.originalKeyword;
+				if (!originalStats.has(originalKeyword)) {
+					originalStats.set(originalKeyword, {
+						standards: new Set(),
+						totalMatches: 0
+					});
+				}
+				
+				const stats = originalStats.get(originalKeyword);
+				stats.standards.add(group.standardKey);
+				stats.totalMatches += group.exactMatches.length;
+			});
+			
+			// 第三步：找出可以合并的原始关键词（同一个原始关键词匹配同一个规范）
+			const mergedResults = [];
+			const processedExactMatches = new Set();
+			
+			originalStats.forEach((stats, originalKeyword) => {
+				// 如果一个原始关键词只有一个规范完全匹配，考虑合并
+				if (stats.standards.size === 1) {
+					// 找到这个原始关键词的所有匹配
+					const matchesForOriginal = [];
+					originalStandardMap.forEach((group, combinedKey) => {
+						if (group.originalKeyword === originalKeyword) {
+							matchesForOriginal.push(group);
+						}
+					});
+					
+					// 检查是否满足合并条件（至少来自2个不同的网站或至少有2个完全匹配）
+					const uniqueSites = new Set();
+					let totalExactMatches = 0;
+					matchesForOriginal.forEach(group => {
+						group.exactMatches.forEach(match => {
+							uniqueSites.add(match.site);
+							totalExactMatches++;
+						});
+					});
+					
+					if (uniqueSites.size >= 2 || totalExactMatches >= 2) {
+						// 可以合并
+						const firstGroup = matchesForOriginal[0];
+						const mergedResult = {...firstGroup.exactMatches[0]};
+						
+						const mergedKeywords = new Set();
+						const mergedSites = new Set();
+						
+						// 收集所有信息
+						matchesForOriginal.forEach(group => {
+							group.exactMatches.forEach(match => {
+								mergedKeywords.add(match.keyword);
+								mergedSites.add(match.site);
+								processedExactMatches.add(match);
+								
+								// 保留最早的日期
+								if (match.date && match.date !== '-' && (!mergedResult.date || mergedResult.date === '-')) {
+									mergedResult.date = match.date;
+								}
+								
+								// 如果任何结果状态为废止，则标记为废止
+								if (match.status && match.status !== '现行') {
+									mergedResult.status = match.status;
+								}
+							});
+						});
+						
+						mergedResult.keyword = `${mergedResult.name} ${mergedResult.code}`.trim();
+						mergedResult.isMerged = true;
+						mergedResult.match = '●';
+						mergedResult.queryStatus = '完全匹配合并结果';
+						mergedResult.mergedFrom = Array.from(mergedKeywords);
+						mergedResult.mergedOriginals = [originalKeyword];
+						mergedResult.mergedCount = totalExactMatches;
+						mergedResult.site = Array.from(mergedSites).join(', ');
+						
+						mergedResults.push(mergedResult);
+						
+						addLog(`✅ 创建完全匹配合并结果: "${mergedResult.keyword}" (合并了 ${originalKeyword} 在 ${uniqueSites.size} 个网站的 ${totalExactMatches} 个完全匹配)`, 'success');
+						
+						// 标记这个原始关键词已经有合并结果
+						keywordsWithNoExactMatch.delete(originalKeyword);
+					} else {
+						// 不满足合并条件，单独添加
+						matchesForOriginal.forEach(group => {
+							group.exactMatches.forEach(match => {
+								if (!processedExactMatches.has(match)) {
+									match.isMerged = false;
+									mergedResults.push(match);
+									processedExactMatches.add(match);
+								}
+							});
+						});
+						addLog(`ℹ️ 原始关键词 "${originalKeyword}" 只有 ${totalExactMatches} 个完全匹配，来自 ${uniqueSites.size} 个网站，不合并`, 'info');
+					}
+				} else {
+					// 一个原始关键词匹配多个规范，不合并
+					addLog(`ℹ️ 原始关键词 "${originalKeyword}" 匹配了 ${stats.standards.size} 个不同规范，不合并`, 'info');
+					
+					originalStandardMap.forEach((group, combinedKey) => {
+						if (group.originalKeyword === originalKeyword) {
+							group.exactMatches.forEach(match => {
+								if (!processedExactMatches.has(match)) {
+									match.isMerged = false;
+									mergedResults.push(match);
+									processedExactMatches.add(match);
+								}
+							});
+						}
+					});
+				}
+			});
+			
+			// 第四步：添加未处理的完全匹配和部分匹配
+			results.forEach(result => {
+				if (result.isExactMatch && !processedExactMatches.has(result)) {
+					result.isMerged = false;
+					mergedResults.push(result);
+					processedExactMatches.add(result);
+				} else if (!result.isExactMatch && !result.isNoResult) {
+					result.isMerged = false;
+					mergedResults.push(result);
+				}
+			});
+			
+			// 第五步：添加无结果行
+			const noResultRows = results.filter(r => r.isNoResult);
+			mergedResults.push(...noResultRows);
+			
+			return deduplicateResults(mergedResults);
+		}
+
+		// ==================== 简化的合并检查函数 ====================
+		function shouldMergeResults(exactMatches) {
+			if (exactMatches.length < 2) {
+				return false;
+			}
+			
+			// 检查是否来自同一原始关键词
+			const originalKeywords = new Set();
+			exactMatches.forEach(item => {
+				if (item.originalKeyword) {
+					originalKeywords.add(item.originalKeyword);
+				}
+			});
+			
+			// 如果来自多个原始关键词，不合并
+			if (originalKeywords.size !== 1) {
+				addLog(`❌ 不能合并：来自 ${originalKeywords.size} 个不同原始关键词`, 'info');
+				return false;
+			}
+			
+			// 检查是否指向同一规范
+			const standardKeys = new Set();
+			exactMatches.forEach(item => {
+				const key = getStandardUniqueKey(item.code, item.name);
+				standardKeys.add(key);
+			});
+			
+			if (standardKeys.size !== 1) {
+				addLog(`❌ 不能合并：指向 ${standardKeys.size} 个不同规范`, 'info');
+				return false;
+			}
+			
+			// 检查所有是否都是完全匹配
+			const allExact = exactMatches.every(item => item.isExactMatch);
+			if (!allExact) {
+				addLog(`❌ 不能合并：不是所有结果都是完全匹配`, 'info');
+				return false;
+			}
+			
+			// 检查版本信息一致性
+			const firstResult = exactMatches[0];
+			const firstCodeWithVersion = processTextWithVersion(firstResult.code, true);
+			const firstNameWithVersion = processTextWithVersion(firstResult.name, false);
+			
+			for (let i = 1; i < exactMatches.length; i++) {
+				const result = exactMatches[i];
+				const resultCodeWithVersion = processTextWithVersion(result.code, true);
+				const resultNameWithVersion = processTextWithVersion(result.name, false);
+				
+				// 检查代号版本信息是否一致
+				const codeVersion1 = firstCodeWithVersion.versionInfo;
+				const codeVersion2 = resultCodeWithVersion.versionInfo;
+				
+				if (codeVersion1 && codeVersion2 && codeVersion1 !== codeVersion2) {
+					addLog(`❌ 不能合并：代号版本不一致 "${codeVersion1}" ≠ "${codeVersion2}"`, 'info');
+					return false;
+				}
+				
+				// 检查名称版本信息是否一致
+				const nameVersion1 = firstNameWithVersion.versionInfo;
+				const nameVersion2 = resultNameWithVersion.versionInfo;
+				
+				if (nameVersion1 && nameVersion2 && nameVersion1 !== nameVersion2) {
+					addLog(`❌ 不能合并：名称版本不一致 "${nameVersion1}" ≠ "${nameVersion2}"`, 'info');
+					return false;
+				}
+			}
+			
+			const originalKeyword = Array.from(originalKeywords)[0];
+			addLog(`✅ 可以合并：原始关键词 "${originalKeyword}" 的 ${exactMatches.length} 个完全匹配指向同一规范`, 'success');
+			return true;
+		}
+
+		// ==================== 修改主要查询函数中的结果处理部分 ====================
+		// 在 startSearch 函数中找到以下部分并修改：
+
+		// 原来的代码：
+		// if (resultsWithContent.length > 0) {
+		//     let processedResults = deduplicateResults(resultsWithContent);
+		//     processedResults = mergeExactMatchResults(processedResults);
+		//     // 新增：过滤与合并结果相关的部分匹配
+		//     processedResults = filterPartialMatchesAfterMerge(processedResults);
+		//     finalResults = [...processedResults, ...noResultRows];
+		// } else {
+		//     finalResults = noResultRows;
+		// }
+
+		// 修改为：
+		if (resultsWithContent.length > 0) {
+			let processedResults = deduplicateResults(resultsWithContent);
+			
+			// 只有在选择了多个网站时才进行合并
+			if (selectedSites.length > 1) {
+				processedResults = mergeExactMatchResults(processedResults);
+				// 过滤与合并结果相关的部分匹配
+				processedResults = filterPartialMatchesAfterMerge(processedResults);
+			}
+			
+			finalResults = [...processedResults, ...noResultRows];
+		} else {
+			finalResults = noResultRows;
+		}
+
+		// ==================== 同时修改过滤函数 ====================
+		function filterPartialMatchesAfterMerge(results) {
+			const mergedResults = results.filter(r => r.isMerged);
+			const partialResults = results.filter(r => !r.isMerged && !r.isNoResult);
+			const noResultRows = results.filter(r => r.isNoResult);
+			
+			// 如果没有合并结果，直接返回所有结果
+			if (mergedResults.length === 0) {
+				return [...partialResults, ...noResultRows];
+			}
+			
+			// 收集所有合并结果的原始关键词
+			const mergedOriginals = new Set();
+			mergedResults.forEach(merged => {
+				if (merged.mergedOriginals) {
+					merged.mergedOriginals.forEach(keyword => mergedOriginals.add(keyword));
+				}
+			});
+			
+			// 过滤部分匹配结果
+			const filteredPartialResults = partialResults.filter(partial => {
+				// 检查部分匹配的原始关键词是否在合并结果的关键词来源中
+				if (partial.originalKeyword && mergedOriginals.has(partial.originalKeyword)) {
+					// 如果这个部分匹配是完全匹配，且原始关键词已经合并，则过滤掉
+					if (partial.isExactMatch) {
+						addLog(`过滤与合并结果相关的完全匹配: "${partial.keyword}" (原始: "${partial.originalKeyword}")`, 'info');
+						return false;
+					}
+				}
+				
+				return true;
+			});
+			
+			return [...mergedResults, ...filteredPartialResults, ...noResultRows];
+		}
 
         // ==================== 新增：过滤与合并结果相关的部分匹配结果 ====================
         function filterPartialMatchesAfterMerge(results) {
@@ -820,19 +1080,25 @@
                 return [...partialResults, ...noResultRows];
             }
             
-            // 收集所有合并结果的关键词来源
-            const mergedKeywords = new Set();
+            // 收集所有合并结果的原始关键词来源
+            const mergedOriginals = new Set();
             mergedResults.forEach(merged => {
-                if (merged.mergedFrom) {
-                    merged.mergedFrom.forEach(keyword => mergedKeywords.add(keyword));
+                if (merged.mergedOriginals) {
+                    merged.mergedOriginals.forEach(keyword => mergedOriginals.add(keyword));
                 }
             });
             
-            // 过滤部分匹配结果：如果部分匹配的关键词与合并结果的关键词来源相同，则过滤掉
+            // 过滤部分匹配结果：如果部分匹配的关键词或原始关键词与合并结果的关键词来源相同，则过滤掉
             const filteredPartialResults = partialResults.filter(partial => {
-                // 如果这个部分匹配结果的关键词在合并结果的关键词来源中，则过滤掉
-                if (mergedKeywords.has(partial.keyword)) {
+                // 检查部分匹配的关键词是否在合并结果的关键词来源中
+                if (mergedOriginals.has(partial.keyword)) {
                     addLog(`过滤与合并结果相关的部分匹配: "${partial.keyword}"`, 'info');
+                    return false;
+                }
+                
+                // 检查部分匹配的原始关键词是否在合并结果的关键词来源中
+                if (partial.originalKeyword && mergedOriginals.has(partial.originalKeyword)) {
+                    addLog(`过滤与合并结果相关的部分匹配（原始关键词）: "${partial.keyword}" (原始: "${partial.originalKeyword}")`, 'info');
                     return false;
                 }
                 
@@ -864,200 +1130,7 @@
             
             return [...mergedResults, ...filteredPartialResults, ...noResultRows];
         }
-		// ==================== 改进的关键词智能拆分函数（版本信息不作为独立关键词） ====================
-function extractCodeAndName(input) {
-    if (!input) return { code: '', name: '' };
-    const originalInput = input;
-    
-    let cleanedInput = input.trim();
-    
-    // 清理序号和书名号
-    cleanedInput = cleanBookQuotes(cleanedInput).trim();
-    cleanedInput = cleanSequenceNumbers(cleanedInput);
-    
-    if (!cleanedInput) {
-        return { code: '', name: '' };
-    }
-    
-    // 首先，检查整个字符串是否只包含版本信息（如"（2018年版）"）
-    const versionOnlyPattern = /^[\(（]\d{4}(?:年)?版?[）\)]$/;
-    if (versionOnlyPattern.test(cleanedInput)) {
-        addLog(`跳过纯版本信息: "${originalInput}"`, 'info');
-        return { code: '', name: '' }; // 返回空，让上层过滤掉
-    }
-    
-    // 常见的格式模式（按优先级）
-    const patterns = [
-        // 格式1: 代号 + 空格 + 名称 (如: "GB 50009-2012 建筑结构荷载规范")
-        /^([A-Z]{2,}(?:\/[A-Z])?\s*\d+(?:[\.\-]\d+)*(?:[\(（]\d{4}(?:年)?版?[）\)])?)\s+(.*)$/i,
-        // 格式2: 名称 + 空格 + 代号 (如: "建筑结构荷载规范 GB 50009-2012")
-        /^(.*)\s+([A-Z]{2,}(?:\/[A-Z])?\s*\d+(?:[\.\-]\d+)*(?:[\(（]\d{4}(?:年)?版?[）\)])?)$/i,
-        // 格式3: 代号后直接跟名称，没有空格 (如: "GB50009-2012建筑结构荷载规范")
-        /^([A-Z]{2,}(?:\/[A-Z])?\d+(?:[\.\-]\d+)*(?:[\(（]\d{4}(?:年)?版?[）\)])?)(.*)$/i,
-        // 格式4: 名称后直接跟代号，没有空格 (如: "建筑结构荷载规范GB50009-2012")
-        /^(.*)([A-Z]{2,}(?:\/[A-Z])?\d+(?:[\.\-]\d+)*(?:[\(（]\d{4}(?:年)?版?[）\)])?)$/i,
-    ];
-    
-    for (const pattern of patterns) {
-        const match = cleanedInput.match(pattern);
-        if (match) {
-            let code, name;
-            
-            if (pattern.source.includes('^.*\\s+[A-Z]')) {
-                // 格式2: 名称 + 代号
-                name = match[1].trim();
-                code = match[2].trim();
-            } else if (pattern.source.includes('^[A-Z].*\\s+.*')) {
-                // 格式1: 代号 + 名称
-                code = match[1].trim();
-                name = match[2].trim();
-            } else if (pattern.source.includes('^.*[A-Z]')) {
-                // 格式4: 名称 + 代号（无空格）
-                name = match[1].trim();
-                code = match[2].trim();
-            } else {
-                // 格式3: 代号 + 名称（无空格）
-                code = match[1].trim();
-                name = match[2].trim();
-            }
-            
-            // 清理名称：移除名称开头或结尾的版本信息
-            // 名称中可能包含版本信息，如"建筑结构荷载规范(2018版)"
-            name = name.replace(/^[\(（]\d{4}(?:年)?版?[）\)]\s*/, '').trim(); // 移除开头的版本信息
-            name = name.replace(/\s*[\(（]\d{4}(?:年)?版?[）\)]$/, '').trim(); // 移除结尾的版本信息
-            
-            // 进一步清理名称中的多余分隔符
-            name = name.replace(/[《》\s：:，,。.;；\-–—]+$/, '').trim();
-            name = name.replace(/^[《》\s：:，,。.;；\-–—]+/, '').trim();
-            
-            // 清理代号：移除代号开头或结尾的版本信息（但代号本身可能包含版本信息）
-            // 注意：代号的版本信息通常保留，如"GB50016-2014（2018年版）"
-            // 这里只清理额外的版本信息
-            
-            if (code && name) {
-                addLog(`成功拆分（模式匹配）: "${originalInput}" → 代号: "${code}", 名称: "${name}"`, 'info');
-                return { code, name };
-            } else if (code) {
-                // 只有代号，检查是否是纯版本信息
-                const cleanCode = code.replace(/[\(（]\d{4}(?:年)?版?[）\)]/g, '').trim();
-                if (cleanCode && cleanCode.length >= 2) {
-                    addLog(`提取到代号: "${originalInput}" → 代号: "${code}"`, 'info');
-                    return { code, name: code };
-                } else {
-                    // 只有版本信息，跳过
-                    addLog(`跳过纯版本信息: "${originalInput}"`, 'info');
-                    return { code: '', name: '' };
-                }
-            }
-        }
-    }
-    
-    // 如果所有模式都不匹配，尝试更简单的提取
-    const simpleCodePattern = /([A-Z]{2,}(?:\/[A-Z])?\s*\d+(?:[\.\-]\d+)*(?:[\(（]\d{4}(?:年)?版?[）\)])?)/i;
-    const simpleCodeMatch = cleanedInput.match(simpleCodePattern);
-    
-    if (simpleCodeMatch) {
-        const code = simpleCodeMatch[1].trim();
-        // 检查是否只包含版本信息
-        const cleanCode = code.replace(/[\(（]\d{4}(?:年)?版?[）\)]/g, '').trim();
-        if (cleanCode && cleanCode.length >= 2) {
-            // 将整个字符串作为名称，让网站去匹配
-            addLog(`提取到代号，整个字符串作为名称: "${originalInput}" → 代号: "${code}", 名称: "${cleanedInput}"`, 'info');
-            return { code, name: cleanedInput };
-        } else {
-            // 只有版本信息，跳过
-            addLog(`跳过纯版本信息: "${originalInput}"`, 'info');
-            return { code: '', name: '' };
-        }
-    }
-    
-    // 检查是否为纯版本信息
-    const pureVersionPattern = /^[\(（]\d{4}(?:年)?版?[）\)]$/;
-    if (pureVersionPattern.test(cleanedInput)) {
-        addLog(`跳过纯版本信息: "${originalInput}"`, 'info');
-        return { code: '', name: '' };
-    }
-    
-    // 最后，将整个输入作为名称处理
-    addLog(`未检测到代号，作为名称处理: "${originalInput}" → 名称: "${cleanedInput}"`, 'info');
-    return { code: '', name: cleanedInput };
-}
 
-		// ==================== 修改关键词解析函数，过滤掉纯版本信息 ====================
-		function parseKeywords(input) {
-			rawKeywords = input.split(/[\n\t,;，；]+/).filter(k => k.trim());
-			const processedKeywords = new Map();
-			
-			rawKeywords.forEach(keyword => {
-				const trimmed = keyword.trim();
-				if (!trimmed) return;
-				
-				const cleanedForCheck = trimmed.replace(/[\t\s]/g, '');
-				const pureSequencePattern = /^[（(]?\d+[）)\]]*$/;
-				if (pureSequencePattern.test(cleanedForCheck)) {
-					addLog(`跳过纯序号行: "${trimmed}"`, 'info');
-					return;
-				}
-				
-				// 检查是否为纯版本信息
-				const pureVersionPattern = /^[\(（]\d{4}(?:年)?版?[）\)]$/;
-				if (pureVersionPattern.test(cleanedForCheck)) {
-					addLog(`跳过纯版本信息: "${trimmed}"`, 'info');
-					return;
-				}
-				
-				const { code, name } = extractCodeAndName(trimmed);
-				
-				// 检查拆分结果是否有效
-				const isValidCode = code && !/^[（(]?\d+[）)\]\s\t]*$/.test(code.replace(/[\t\s]/g, ''));
-				const isValidName = name && !/^[（(]?\d+[）)\]\s\t]*$/.test(name.replace(/[\t\s]/g, '')) && name.trim().length > 0;
-				
-				// 检查名称是否为纯版本信息
-				const isNamePureVersion = name && pureVersionPattern.test(name.replace(/[\t\s]/g, ''));
-				
-				if (isValidCode && isValidName && code !== name && !isNamePureVersion) {
-					processedKeywords.set(code, { type: 'code', original: trimmed });
-					processedKeywords.set(name, { type: 'name', original: trimmed });
-					addLog(`检测到组合关键词 "${trimmed}"，已拆分为: "${code}" 和 "${name}"`, 'info');
-				} else if (isValidCode) {
-					processedKeywords.set(code, { type: 'code', original: trimmed });
-					if (trimmed !== code) addLog(`关键词 "${trimmed}" 提取为: "${code}"`, 'info');
-				} else if (isValidName && !isNamePureVersion) {
-					processedKeywords.set(name, { type: 'name', original: trimmed });
-					if (trimmed !== name) addLog(`关键词 "${trimmed}" 清理为: "${name}"`, 'info');
-				} else {
-					const cleaned = cleanSequenceNumbers(cleanBookQuotes(trimmed)).trim();
-					const cleanedForFinalCheck = cleaned.replace(/[\t\s]/g, '');
-					
-					// 检查清理后的内容是否为纯版本信息
-					const isCleanedPureVersion = pureVersionPattern.test(cleanedForFinalCheck);
-					
-					if (cleaned && !/^[（(]?\d+[）)\]]*$/.test(cleanedForFinalCheck) && !isCleanedPureVersion) {
-						const finalCleaned = cleaned.replace(/\(+$/, '').replace(/^\)+/, '').trim();
-						processedKeywords.set(finalCleaned, { type: 'unknown', original: trimmed });
-						if (trimmed !== finalCleaned) addLog(`关键词 "${trimmed}" 清理后为: "${finalCleaned}"`, 'info');
-					} else if (isCleanedPureVersion) {
-						addLog(`跳过纯版本信息（清理后）: "${trimmed}"`, 'info');
-					} else {
-						addLog(`跳过无效内容: "${trimmed}"`, 'info');
-					}
-				}
-			});
-			
-			const result = Array.from(processedKeywords.entries()).filter(([keyword, info]) => {
-				// 再次过滤：确保关键词不是纯版本信息
-				const keywordForCheck = keyword.replace(/[\t\s]/g, '');
-				const pureVersionPattern = /^[\(（]\d{4}(?:年)?版?[）\)]$/;
-				return !pureVersionPattern.test(keywordForCheck);
-			}).map(([keyword, info]) => ({
-				keyword,
-				type: info.type,
-				original: info.original
-			}));
-			
-			console.log(`最终关键词列表（保持输入顺序）:`, result);
-			return result;
-		}
         // ==================== 清理函数 ====================
         function cleanBookQuotes(text) {
             if (!text) return '';
@@ -1098,7 +1171,124 @@ function extractCodeAndName(input) {
             return cleaned;
         }
 
-
+        // ==================== 改进的关键词智能拆分函数（版本信息不作为独立关键词） ====================
+        function extractCodeAndName(input) {
+            if (!input) return { code: '', name: '' };
+            const originalInput = input;
+            
+            let cleanedInput = input.trim();
+            
+            // 清理序号和书名号
+            cleanedInput = cleanBookQuotes(cleanedInput).trim();
+            cleanedInput = cleanSequenceNumbers(cleanedInput);
+            
+            if (!cleanedInput) {
+                return { code: '', name: '' };
+            }
+            
+            // 首先，检查整个字符串是否只包含版本信息（如"（2018年版）"）
+            const versionOnlyPattern = /^[\(（]\d{4}(?:年)?版?[）\)]$/;
+            if (versionOnlyPattern.test(cleanedInput)) {
+                addLog(`跳过纯版本信息: "${originalInput}"`, 'info');
+                return { code: '', name: '' }; // 返回空，让上层过滤掉
+            }
+            
+            // 常见的格式模式（按优先级）
+            const patterns = [
+                // 格式1: 代号 + 空格 + 名称 (如: "GB 50009-2012 建筑结构荷载规范")
+                /^([A-Z]{2,}(?:\/[A-Z])?\s*\d+(?:[\.\-]\d+)*(?:[\(（]\d{4}(?:年)?版?[）\)])?)\s+(.*)$/i,
+                // 格式2: 名称 + 空格 + 代号 (如: "建筑结构荷载规范 GB 50009-2012")
+                /^(.*)\s+([A-Z]{2,}(?:\/[A-Z])?\s*\d+(?:[\.\-]\d+)*(?:[\(（]\d{4}(?:年)?版?[）\)])?)$/i,
+                // 格式3: 代号后直接跟名称，没有空格 (如: "GB50009-2012建筑结构荷载规范")
+                /^([A-Z]{2,}(?:\/[A-Z])?\d+(?:[\.\-]\d+)*(?:[\(（]\d{4}(?:年)?版?[）\)])?)(.*)$/i,
+                // 格式4: 名称后直接跟代号，没有空格 (如: "建筑结构荷载规范GB50009-2012")
+                /^(.*)([A-Z]{2,}(?:\/[A-Z])?\d+(?:[\.\-]\d+)*(?:[\(（]\d{4}(?:年)?版?[）\)])?)$/i,
+            ];
+            
+            for (const pattern of patterns) {
+                const match = cleanedInput.match(pattern);
+                if (match) {
+                    let code, name;
+                    
+                    if (pattern.source.includes('^.*\\s+[A-Z]')) {
+                        // 格式2: 名称 + 代号
+                        name = match[1].trim();
+                        code = match[2].trim();
+                    } else if (pattern.source.includes('^[A-Z].*\\s+.*')) {
+                        // 格式1: 代号 + 名称
+                        code = match[1].trim();
+                        name = match[2].trim();
+                    } else if (pattern.source.includes('^.*[A-Z]')) {
+                        // 格式4: 名称 + 代号（无空格）
+                        name = match[1].trim();
+                        code = match[2].trim();
+                    } else {
+                        // 格式3: 代号 + 名称（无空格）
+                        code = match[1].trim();
+                        name = match[2].trim();
+                    }
+                    
+                    // 清理名称：移除名称开头或结尾的版本信息
+                    // 名称中可能包含版本信息，如"建筑结构荷载规范(2018版)"
+                    name = name.replace(/^[\(（]\d{4}(?:年)?版?[）\)]\s*/, '').trim(); // 移除开头的版本信息
+                    name = name.replace(/\s*[\(（]\d{4}(?:年)?版?[）\)]$/, '').trim(); // 移除结尾的版本信息
+                    
+                    // 进一步清理名称中的多余分隔符
+                    name = name.replace(/[《》\s：:，,。.;；\-–—]+$/, '').trim();
+                    name = name.replace(/^[《》\s：:，,。.;；\-–—]+/, '').trim();
+                    
+                    // 清理代号：移除代号开头或结尾的版本信息（但代号本身可能包含版本信息）
+                    // 注意：代号的版本信息通常保留，如"GB50016-2014（2018年版）"
+                    // 这里只清理额外的版本信息
+                    
+                    if (code && name) {
+                        addLog(`成功拆分（模式匹配）: "${originalInput}" → 代号: "${code}", 名称: "${name}"`, 'info');
+                        return { code, name };
+                    } else if (code) {
+                        // 只有代号，检查是否是纯版本信息
+                        const cleanCode = code.replace(/[\(（]\d{4}(?:年)?版?[）\)]/g, '').trim();
+                        if (cleanCode && cleanCode.length >= 2) {
+                            addLog(`提取到代号: "${originalInput}" → 代号: "${code}"`, 'info');
+                            return { code, name: code };
+                        } else {
+                            // 只有版本信息，跳过
+                            addLog(`跳过纯版本信息: "${originalInput}"`, 'info');
+                            return { code: '', name: '' };
+                        }
+                    }
+                }
+            }
+            
+            // 如果所有模式都不匹配，尝试更简单的提取
+            const simpleCodePattern = /([A-Z]{2,}(?:\/[A-Z])?\s*\d+(?:[\.\-]\d+)*(?:[\(（]\d{4}(?:年)?版?[）\)])?)/i;
+            const simpleCodeMatch = cleanedInput.match(simpleCodePattern);
+            
+            if (simpleCodeMatch) {
+                const code = simpleCodeMatch[1].trim();
+                // 检查是否只包含版本信息
+                const cleanCode = code.replace(/[\(（]\d{4}(?:年)?版?[）\)]/g, '').trim();
+                if (cleanCode && cleanCode.length >= 2) {
+                    // 将整个字符串作为名称，让网站去匹配
+                    addLog(`提取到代号，整个字符串作为名称: "${originalInput}" → 代号: "${code}", 名称: "${cleanedInput}"`, 'info');
+                    return { code, name: cleanedInput };
+                } else {
+                    // 只有版本信息，跳过
+                    addLog(`跳过纯版本信息: "${originalInput}"`, 'info');
+                    return { code: '', name: '' };
+                }
+            }
+            
+            // 检查是否为纯版本信息
+            const pureVersionPattern = /^[\(（]\d{4}(?:年)?版?[）\)]$/;
+            if (pureVersionPattern.test(cleanedInput)) {
+                addLog(`跳过纯版本信息: "${originalInput}"`, 'info');
+                return { code: '', name: '' };
+            }
+            
+            // 最后，将整个输入作为名称处理
+            addLog(`未检测到代号，作为名称处理: "${originalInput}" → 名称: "${cleanedInput}"`, 'info');
+            return { code: '', name: cleanedInput };
+        }
 
         // ==================== 关键词解析函数 ====================
         function parseKeywords(input) {
@@ -1116,34 +1306,57 @@ function extractCodeAndName(input) {
                     return;
                 }
                 
+                // 检查是否为纯版本信息
+                const pureVersionPattern = /^[\(（]\d{4}(?:年)?版?[）\)]$/;
+                if (pureVersionPattern.test(cleanedForCheck)) {
+                    addLog(`跳过纯版本信息: "${trimmed}"`, 'info');
+                    return;
+                }
+                
                 const { code, name } = extractCodeAndName(trimmed);
+                
+                // 检查拆分结果是否有效
                 const isValidCode = code && !/^[（(]?\d+[）)\]\s\t]*$/.test(code.replace(/[\t\s]/g, ''));
                 const isValidName = name && !/^[（(]?\d+[）)\]\s\t]*$/.test(name.replace(/[\t\s]/g, '')) && name.trim().length > 0;
                 
-                if (isValidCode && isValidName && code !== name) {
+                // 检查名称是否为纯版本信息
+                const isNamePureVersion = name && pureVersionPattern.test(name.replace(/[\t\s]/g, ''));
+                
+                if (isValidCode && isValidName && code !== name && !isNamePureVersion) {
                     processedKeywords.set(code, { type: 'code', original: trimmed });
                     processedKeywords.set(name, { type: 'name', original: trimmed });
                     addLog(`检测到组合关键词 "${trimmed}"，已拆分为: "${code}" 和 "${name}"`, 'info');
                 } else if (isValidCode) {
                     processedKeywords.set(code, { type: 'code', original: trimmed });
                     if (trimmed !== code) addLog(`关键词 "${trimmed}" 提取为: "${code}"`, 'info');
-                } else if (isValidName) {
+                } else if (isValidName && !isNamePureVersion) {
                     processedKeywords.set(name, { type: 'name', original: trimmed });
                     if (trimmed !== name) addLog(`关键词 "${trimmed}" 清理为: "${name}"`, 'info');
                 } else {
                     const cleaned = cleanSequenceNumbers(cleanBookQuotes(trimmed)).trim();
                     const cleanedForFinalCheck = cleaned.replace(/[\t\s]/g, '');
-                    if (cleaned && !/^[（(]?\d+[）)\]]*$/.test(cleanedForFinalCheck)) {
+                    
+                    // 检查清理后的内容是否为纯版本信息
+                    const isCleanedPureVersion = pureVersionPattern.test(cleanedForFinalCheck);
+                    
+                    if (cleaned && !/^[（(]?\d+[）)\]]*$/.test(cleanedForFinalCheck) && !isCleanedPureVersion) {
                         const finalCleaned = cleaned.replace(/\(+$/, '').replace(/^\)+/, '').trim();
                         processedKeywords.set(finalCleaned, { type: 'unknown', original: trimmed });
                         if (trimmed !== finalCleaned) addLog(`关键词 "${trimmed}" 清理后为: "${finalCleaned}"`, 'info');
+                    } else if (isCleanedPureVersion) {
+                        addLog(`跳过纯版本信息（清理后）: "${trimmed}"`, 'info');
                     } else {
                         addLog(`跳过无效内容: "${trimmed}"`, 'info');
                     }
                 }
             });
             
-            const result = Array.from(processedKeywords.entries()).map(([keyword, info]) => ({
+            const result = Array.from(processedKeywords.entries()).filter(([keyword, info]) => {
+                // 再次过滤：确保关键词不是纯版本信息
+                const keywordForCheck = keyword.replace(/[\t\s]/g, '');
+                const pureVersionPattern = /^[\(（]\d{4}(?:年)?版?[）\)]$/;
+                return !pureVersionPattern.test(keywordForCheck);
+            }).map(([keyword, info]) => ({
                 keyword,
                 type: info.type,
                 original: info.original
@@ -1686,7 +1899,7 @@ function extractCodeAndName(input) {
                     similarityDisplay = `<span class="no-result-cell">-</span>`;
                 } else if (result.isMerged) {
                     const mergedCount = result.mergedCount || 2;
-                    keywordDisplay = `<span class="merged-keyword" title="完全匹配合并结果（合并了 ${mergedCount} 个关键词）">${keywordDisplay} </span>`;
+                    keywordDisplay = `<span class="merged-keyword" title="完全匹配合并结果（合并了 ${mergedCount} 个原始关键词）">${keywordDisplay} </span>`;
                     codeDisplay = `<strong style="color: #34a853;">${codeDisplay}</strong>`;
                     nameDisplay = `<span style="color: #34a853;">${nameDisplay}</span>`;
                     // 合并结果的状态也需要检查是否为非现行
@@ -1838,18 +2051,16 @@ function extractCodeAndName(input) {
 
         // ==================== 页面初始化 ====================
         document.addEventListener('DOMContentLoaded', function() {
-            addLog('建设行业规范查询工具已就绪（简化稳定版）', 'success');
+            addLog('建设行业规范查询工具已就绪（优化合并版）', 'success');
             addLog('提示：● 表示完全匹配，○ 表示部分匹配', 'info');
             addLog('支持多线并发查询（最多6个并发）', 'info');
             addLog('名称关键词匹配度低于60%的结果将自动过滤', 'info');
             addLog('所有查询词条都会在结果表格中显示，无结果时标记"无搜索结果"', 'info');
-            addLog('简化拆分逻辑：优先确保查询成功率，不再依赖关键词列表', 'info');
-            addLog('支持代号中包含空格（如"GB 50009-2012"）', 'info');
+            addLog('严格合并逻辑：只有当原始关键词的所有拆分都完全匹配同一个规范时才会合并', 'info');
+            addLog('版本信息如"(2018版)"会作为代号或名称的一部分，不会作为独立关键词', 'info');
             addLog('非现行规范（如废止、作废等）将以<strong style="color: #dc3545;">红色粗体</strong>显示', 'info');
-            addLog('支持版本信息处理：规范名称或代号后的"(2018版)"、"(2018年版)"等将作为名称或代号的一部分进行检索', 'info');
             detectCorsExtension();
         });
     </script>
 </body>
 </html>
-
