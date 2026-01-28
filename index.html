@@ -1325,7 +1325,7 @@
                 });
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const html = await response.text();
-                const results = parseSite1HTML(html, keyword).slice(0, 10);
+                let results = parseSite1HTML(html, keyword).slice(0, 10);
                 // 统一去重
                 results = deduplicateResults(results);
                 // 更新匹配状态
@@ -1805,3 +1805,4 @@
     </script>
 </body>
 </html>
+
