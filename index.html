@@ -101,30 +101,21 @@
     <div class="container">
         <header>
             <h1>建设行业规范版本有效性查核</h1>
-            <div class="subtitle">20260119@优化版 https://github.com/FaiHui10/Code-Valid-Check</div>
+            <div class="subtitle">20260131@无需插件版 https://github.com/FaiHui10/Code-Valid-Check</div>
         </header>
 
         <div class="main-content">
             <div class="section">
                 <div class="section-title">📌 注意事项</div>
-                <div id="corsTip" class="cors-warning" style="display: none;">
-                    <strong>⚠️ 重要提示：</strong>
-                    <p>未检测到Allow CORS扩展！为确保查询功能正常使用，请安装对应插件：</p>
-                    <p>Edge插件：<a href="https://microsoftedge.microsoft.com/addons/detail/allow-cors-accesscontro/bhjepjpgngghppolkjdhckmnfphffdag" target="_blank" style="color: #1a73e8; text-decoration: underline;">Edge 扩展项商店</a></p>
-																																																												   
-                    <p>提示：安装后需启用扩展，并刷新当前页面</p>
-                </div>
                 <div class="instructions">
                     <p><strong>使用说明：</strong></p> 
-                    <p>0. 由于GOOGLE CHROME浏览器的扩展商店不容易连接上，建议使用<strong style="color: red;">Microsoft EDGE浏览器运行本页面</strong>。</p>
-                    <p>1. 请确保浏览器的CORS扩展（如"Allow CORS: Access-Control-Allow-Origin"插件）已启用，并允许访问网址。</p>
-                    <p>2. 本网页可多网站并发查询规范版本的有效性，用户勾选下方网站进行查询，优先仅选择<strong>工程建设标准化信息网</strong>。</p>
-                    <p>3. <strong>双击下列</strong>网站区域，可在新窗口直接访问其官网。</p>
-                    <p>4. 对于每个关键词，每个网站最多返回10条结果，如果没有搜索到结果，用户自行查核。</p>
-                    <p>5. 地标、协会标之类的建议用户自行查核。</p>
-                    <p>6. 可以尝试登录国家标准馆查询规范标准（批量查询需要账号）<a href="https://www.ndls.org.cn/" target="_blank" rel="noopener noreferrer">https://www.ndls.org.cn/</a></p>
-                    <p>7. <strong>智能拆分：</strong>支持"GB 50009-2012 建筑结构荷载规范"（编号在后）和"JGJ/T235-2011 建筑外墙防水工程技术规程"（编号在前）自动拆分</p>
-                    <p>8. <strong>状态显示：</strong>非现行规范（如废止、作废等）将以<strong style="color: #dc3545;">红色粗体</strong>显示</p>
+                    <p>1. 本网页可多网站并发查询规范版本的有效性，用户勾选下方网站进行查询。</p>
+                    <p>2. <strong>双击下列</strong>网站区域，可在新窗口直接访问其官网。</p>
+                    <p>3. 对于每个关键词，每个网站最多返回10条结果，如果没有搜索到结果，用户自行查核。</p>
+                    <p>4. 地标、协会标之类的建议用户自行查核。</p>
+                    <p>5. 可以尝试登录国家标准馆查询规范标准（批量查询需要账号）<a href="https://www.ndls.org.cn/" target="_blank" rel="noopener noreferrer">https://www.ndls.org.cn/</a></p>
+                    <p>6. <strong>智能拆分：</strong>支持"GB 50009-2012 建筑结构荷载规范"（编号在后）和"JGJ/T235-2011 建筑外墙防水工程技术规程"（编号在前）自动拆分</p>
+                    <p>7. <strong>状态显示：</strong>非现行规范（如废止、作废等）将以<strong style="color: #dc3545;">红色粗体</strong>显示</p>
                 </div>
                 <div class="websites-grid">
                     <label class="website-item selected" id="websiteItem1" ondblclick="window.open('https://std.samr.gov.cn', '_blank')">
@@ -566,7 +557,7 @@
                             if (!result.name) return false;
                             const similarity = calculateSimilarity(keyword, result.name);
                             result.similarity = similarity;
-                            return similarity >= 60;
+                            return similarity >= 50;
                         });
                         
                         if (results.length > 0) {
@@ -583,6 +574,9 @@
                         result.isExactMatch = getExactMatchType(keyword, result);
                         result.match = result.isExactMatch ? '●' : '○';
                     });
+                    
+                    // 每个网站内部进行现行版本优先过滤
+                    results = filterCurrentVersionFirstPerSite(results, siteName);
                     
                     return results;
                 } catch (error) {
@@ -877,6 +871,47 @@
             return [...mergedResults, ...filteredPartialResults, ...noResultRows];
         }
 
+		// ==================== 优先显示现行版本过滤函数（简化版） ====================
+        function filterCurrentVersionFirst(results) {
+            const noResultRows = results.filter(r => r.isNoResult);
+            const validResults = results.filter(r => !r.isNoResult);
+            
+            if (validResults.length === 0) {
+                return noResultRows;
+            }
+            
+            // 找到所有完全匹配且状态为现行的结果
+            const exactMatchResults = validResults.filter(r => r.isExactMatch && !isObsoleteStatus(r.status));
+            
+            if (exactMatchResults.length > 0) {
+                // 保留所有完全匹配的现行版本
+                return [...exactMatchResults, ...noResultRows];
+            }
+            
+            // 没有完全匹配的现行版本，返回所有结果用于核对
+            return [...validResults, ...noResultRows];
+        }
+        
+        // ==================== 每个网站内部使用的现行版本优先过滤函数 ====================
+        function filterCurrentVersionFirstPerSite(results, siteName) {
+            if (!results || results.length === 0) {
+                return results;
+            }
+            
+            // 找到第一个完全匹配且状态为现行的结果
+            const exactMatchCurrent = results.find(r => r.isExactMatch && !isObsoleteStatus(r.status));
+            
+            if (exactMatchCurrent) {
+                // 过滤掉其他结果，只保留完全匹配的现行版本
+                const filteredResults = results.filter(r => r === exactMatchCurrent);
+                addLog(`  ${siteName}: 找到完全匹配现行版本，只显示此结果`, 'success');
+                return filteredResults;
+            }
+            
+            // 没有完全匹配的现行版本，返回所有结果
+            return results;
+        }
+
         // ==================== 清理函数 ====================
         function cleanBookQuotes(text) {
             if (!text) return '';
@@ -1132,37 +1167,6 @@
             });
         });
 
-        // ==================== CORS扩展提示（优化：直接明确提示，避免误判） ====================
-        async function detectCorsExtension() {
-            try {
-                const testUrl = 'https://www.baidu.com/favicon.ico'; 
-                const response = await fetch(testUrl, {
-                    method: 'HEAD',
-                    mode: 'cors',
-                    cache: 'no-cache',
-                    signal: AbortSignal.timeout(5000)
-                });
-                addLog('已检测到Allow CORS扩展（或浏览器CORS配置正常）', 'success');
-                return true;
-            } catch (error) {
-                const errorMsg = (error.message || '').toLowerCase();
-                const corsErrorKeywords = [
-                    'cors', '跨域', 'failed to fetch', 'access-control',
-                    'blocked', 'net::err', 'not allowed', 'preflight'
-                ];
-                
-                const isCorsError = corsErrorKeywords.some(keyword => errorMsg.includes(keyword));
-                if (isCorsError) {
-                    addLog('未检测到Allow CORS扩展，将显示安装提示', 'warning');
-                    document.getElementById('corsTip').style.display = 'block';
-                    return false;
-                }
-                
-                addLog(`CORS检测异常（非扩展问题）：${error.message}`, 'info');
-                return true;
-            }
-        }
-
         // ==================== 主要查询函数（支持AbortController中止请求） ====================
         async function startSearch() {
             if (isSearching) return;
@@ -1200,7 +1204,7 @@
             addLog(`启用多线并发查询，最多6个并发`, 'info');
 
             try {
-                const CONCURRENCY_LIMIT = 6;
+                const CONCURRENCY_LIMIT = 12;
                 const totalKeywords = keywordInfos.length;
                 const allKeywordResults = [];
                 
@@ -1272,6 +1276,7 @@
                         let processedResults = deduplicateResults(resultsWithContent);
                         processedResults = mergeExactMatchResults(processedResults);
                         processedResults = filterPartialMatchesAfterMerge(processedResults);
+                        processedResults = filterCurrentVersionFirst(processedResults);
                         finalResults = [...processedResults, ...noResultRows];
                     } else {
                         finalResults = noResultRows;
@@ -1313,114 +1318,6 @@
                 document.getElementById('loadingOverlay').classList.remove('active');
                 updateProgress(100, '就绪');
             }
-        }
-
-        // ==================== 网站查询函数（添加AbortSignal支持） ====================
-        async function querySite1(keyword) {
-            const url = `https://std.samr.gov.cn/search/stdPage?q=${encodeURIComponent(keyword)}&tid=&page=1&pageSize=10`;
-            try {
-                const response = await fetch(url, {
-                    headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
-                    signal: abortController?.signal // 绑定中止信号
-                });
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                const html = await response.text();
-                let results = parseSite1HTML(html, keyword).slice(0, 10);
-                // 统一去重
-                results = deduplicateResults(results);
-                // 更新匹配状态
-                results.forEach(result => {
-                    result.isExactMatch = getExactMatchType(keyword, result);
-                    result.match = result.isExactMatch ? '●' : '○';
-                });
-                return results;
-            } catch (error) { throw error; }
-        }
-
-        async function querySite2National(keyword) {
-            const url = `https://ebook.chinabuilding.com.cn/zbooklib/search?SiteID=1&contentType=book&fieldType=&zylxInnercode=GJBZ&sublibInnercode=&abolish=&SearchKey=${encodeURIComponent(keyword)}&SearchInner=&orderBy=&PageIndex=1&viewType=`;
-            try {
-                const response = await fetch(url, {
-                    headers: {
-                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                        'Referer': 'https://ebook.chinabuilding.com.cn/'
-                    },
-                    signal: abortController?.signal // 绑定中止信号
-                });
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                const html = await response.text();
-                const results = parseSite2HTML(html, keyword).slice(0, 10);
-                results.forEach(result => {
-                    result.site = '建筑标准网站(国家标准)';
-                    result.queryStatus = '有搜索结果';
-                    if (!result.status) result.status = '现行';
-                    // 更新匹配状态
-                    result.isExactMatch = getExactMatchType(keyword, result);
-                    result.match = result.isExactMatch ? '●' : '○';
-                });
-                return results;
-            } catch (error) { 
-                addLog(`国家标准查询失败: ${error.message}`, 'warning');
-                return [];
-            }
-        }
-
-        async function querySite2Industry(keyword) {
-            const url = `https://ebook.chinabuilding.com.cn/zbooklib/search?SiteID=1&contentType=book&fieldType=&zylxInnercode=HYBZ&sublibInnercode=&abolish=&SearchKey=${encodeURIComponent(keyword)}&SearchInner=&orderBy=&PageIndex=1&viewType=`;
-            try {
-                const response = await fetch(url, {
-                    headers: {
-                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                        'Referer': 'https://ebook.chinabuilding.com.cn/'
-                    },
-                    signal: abortController?.signal // 绑定中止信号
-                });
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                const html = await response.text();
-                const results = parseSite2HTML(html, keyword).slice(0, 10);
-                results.forEach(result => {
-                    result.site = '建筑标准网站(行业标准)';
-                    result.queryStatus = '有搜索结果';
-                    if (!result.status) result.status = '现行';
-                    // 更新匹配状态
-                    result.isExactMatch = getExactMatchType(keyword, result);
-                    result.match = result.isExactMatch ? '●' : '○';
-                });
-                return results;
-            } catch (error) { 
-                addLog(`行业标准查询失败: ${error.message}`, 'warning');
-                return [];
-            }
-        }
-
-        async function querySite3(keyword) {
-            const url = 'https://www.ccsn.org.cn/newweb/api/StandardQuery.assx/queryStandard';
-            try {
-                const formData = new URLSearchParams();
-                formData.append('gjz', keyword);
-                formData.append('pageIndex', '1');
-                formData.append('pageSize', '10');
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
-                    body: formData,
-                    signal: abortController?.signal // 绑定中止信号
-                });
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                const data = await response.json();
-                let results = parseSite3JSON(data, keyword);
-                // 统一去重
-                results = deduplicateResults(results);
-                results.forEach(result => {
-                    result.queryStatus = '有搜索结果';
-                    // 更新匹配状态
-                    result.isExactMatch = getExactMatchType(keyword, result);
-                    result.match = result.isExactMatch ? '●' : '○';
-                });
-                return results;
-            } catch (error) { throw error; }
         }
 
         // ==================== 结果解析函数 ====================
@@ -1800,8 +1697,240 @@
             addLog('严格合并逻辑：只有当原始关键词的所有拆分都完全匹配同一个规范时才会合并', 'info');
             addLog('版本信息如"(2018版)"会作为代号或名称的一部分，不会作为独立关键词', 'info');
             addLog('非现行规范（如废止、作废等）将以<strong style="color: #dc3545;">红色粗体</strong>显示', 'info');
-            detectCorsExtension();
         });
+    </script>
+    <script>
+        // 腾讯云SCF接口配置 - SCF只负责获取原始数据，前端负责解析
+        const SCF_CONFIG = {
+            // SCF API网关地址
+            'endpoint': 'https://1326674224-f0hil92o71.ap-guangzhou.tencentscf.com',
+            
+            // 请求超时时间（毫秒）
+            'timeout': 30000,
+            
+            // 各网站配置：true=使用SCF代理, false=直接请求
+            // 所有请求都通过SCF代理，避免跨域问题
+            'sites': {
+                'site1': true,        // 国家标准网站 - SCF代理
+                'site2_national': true, // 建筑标准网站(国家标准) - SCF代理
+                'site2_industry': true, // 建筑标准网站(行业标准) - SCF代理
+                'site3': true         // 工程建设标准化信息网 - SCF代理
+            }
+        };
+
+        // 获取某个网站是否使用SCF代理
+        function useScfProxy(site) {
+            return SCF_CONFIG.sites[site] === true;
+        }
+
+        // SCF接口请求函数 - 获取原始数据（带自动重试）
+        async function fetchViaSCF(keyword, site, maxRetries = 10, retryDelay = 1500) {
+            let lastError = null;
+            
+            for (let attempt = 1; attempt <= maxRetries; attempt++) {
+                try {
+                    const response = await fetch(SCF_CONFIG.endpoint, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            'keyword': keyword,
+                            'site': site
+                        }),
+                        signal: abortController?.signal
+                    });
+                    
+                    if (!response.ok) {
+                        const errorMsg = `HTTP ${response.status}`;
+                        // 对于433及其他服务器错误进行重试
+                        if (response.status >= 500 || response.status === 433 || response.status === 429) {
+                            lastError = new Error(errorMsg);
+                            if (attempt < maxRetries) {
+                                addLog(`  [${site}] HTTP ${response.status}，${retryDelay/1000}秒后重试(${attempt}/${maxRetries})`, 'warning');
+                                await delay(retryDelay);
+                                continue;
+                            }
+                        }
+                        throw new Error(errorMsg);
+                    }
+                    
+                    return await response.json();
+                } catch (error) {
+                    if (error.name === 'AbortError') {
+                        throw error;
+                    }
+                    lastError = error;
+                    
+                    // 网络错误也进行重试
+                    if (attempt < maxRetries) {
+                        addLog(`  [${site}] ${error.message}，${retryDelay/1000}秒后重试(${attempt}/${maxRetries})`, 'warning');
+                        await delay(retryDelay);
+                    }
+                }
+            }
+            
+            throw new Error(`SCF请求失败（已重试${maxRetries}次）: ${lastError?.message || '未知错误'}`);
+        }
+
+        // site1: 国家标准网站
+        async function querySite1(keyword) {
+            if (useScfProxy('site1')) {
+                const result = await fetchViaSCF(keyword, 'site1');
+                if (!result.success) {
+                    throw new Error(result.error || '查询失败');
+                }
+                // 前端解析HTML
+                let results = parseSite1HTML(result.data, keyword).slice(0, 10);
+                results = deduplicateResults(results);
+                return updateMatchStatus(results, keyword);
+            }
+            
+            // 直接请求
+            const url = `https://std.samr.gov.cn/search/stdPage?q=${encodeURIComponent(keyword)}&tid=&page=1&pageSize=10`;
+            try {
+                const response = await fetch(url, {
+                    headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
+                    signal: abortController?.signal
+                });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const html = await response.text();
+                let results = parseSite1HTML(html, keyword).slice(0, 10);
+                results = deduplicateResults(results);
+                return updateMatchStatus(results, keyword);
+            } catch (error) { throw error; }
+        }
+
+        // site2: 建筑标准网站 - 国家标准
+        async function querySite2National(keyword) {
+            if (useScfProxy('site2_national')) {
+                const result = await fetchViaSCF(keyword, 'site2_national');
+                if (!result.success) {
+                    addLog(`国家标准查询失败: ${result.error}`, 'warning');
+                    return [];
+                }
+                // 前端解析HTML
+                let results = parseSite2HTML(result.data, keyword).slice(0, 10);
+                results.forEach(result => {
+                    result.site = result.site || '建筑标准网站(国家标准)';
+                    if (!result.status) result.status = '现行';
+                });
+                results = deduplicateResults(results);
+                return updateMatchStatus(results, keyword);
+            }
+            
+            // 直接请求
+            const url = `https://ebook.chinabuilding.com.cn/zbooklib/search?SiteID=1&contentType=book&fieldType=&zylxInnercode=GJBZ&sublibInnercode=&abolish=&SearchKey=${encodeURIComponent(keyword)}&SearchInner=&orderBy=&PageIndex=1&viewType=`;
+            try {
+                const response = await fetch(url, {
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                        'Referer': 'https://ebook.chinabuilding.com.cn/'
+                    },
+                    signal: abortController?.signal
+                });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const html = await response.text();
+                const results = parseSite2HTML(html, keyword).slice(0, 10);
+                results.forEach(result => {
+                    result.site = '建筑标准网站(国家标准)';
+                    result.queryStatus = '有搜索结果';
+                    if (!result.status) result.status = '现行';
+                });
+                return updateMatchStatus(results, keyword);
+            } catch (error) { 
+                addLog(`国家标准查询失败: ${error.message}`, 'warning');
+                return [];
+            }
+        }
+
+        // site2: 建筑标准网站 - 行业标准
+        async function querySite2Industry(keyword) {
+            if (useScfProxy('site2_industry')) {
+                const result = await fetchViaSCF(keyword, 'site2_industry');
+                if (!result.success) {
+                    addLog(`行业标准查询失败: ${result.error}`, 'warning');
+                    return [];
+                }
+                // 前端解析HTML
+                let results = parseSite2HTML(result.data, keyword).slice(0, 10);
+                results.forEach(result => {
+                    result.site = result.site || '建筑标准网站(行业标准)';
+                    if (!result.status) result.status = '现行';
+                });
+                results = deduplicateResults(results);
+                return updateMatchStatus(results, keyword);
+            }
+            
+            // 直接请求
+            const url = `https://ebook.chinabuilding.com.cn/zbooklib/search?SiteID=1&contentType=book&fieldType=&zylxInnercode=HYBZ&sublibInnercode=&abolish=&SearchKey=${encodeURIComponent(keyword)}&SearchInner=&orderBy=&PageIndex=1&viewType=`;
+            try {
+                const response = await fetch(url, {
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                        'Referer': 'https://ebook.chinabuilding.com.cn/'
+                    },
+                    signal: abortController?.signal
+                });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const html = await response.text();
+                const results = parseSite2HTML(html, keyword).slice(0, 10);
+                results.forEach(result => {
+                    result.site = '建筑标准网站(行业标准)';
+                    result.queryStatus = '有搜索结果';
+                    if (!result.status) result.status = '现行';
+                });
+                return updateMatchStatus(results, keyword);
+            } catch (error) { 
+                addLog(`行业标准查询失败: ${error.message}`, 'warning');
+                return [];
+            }
+        }
+
+        // site3: 工程建设标准化信息网
+        async function querySite3(keyword) {
+            if (useScfProxy('site3')) {
+                const result = await fetchViaSCF(keyword, 'site3');
+                if (!result.success) {
+                    throw new Error(result.error || '查询失败');
+                }
+                // 前端解析JSON
+                let results = parseSite3JSON(JSON.parse(result.data), keyword);
+                results = deduplicateResults(results);
+                return updateMatchStatus(results, keyword);
+            }
+            
+            // 直接请求
+            const url = 'https://www.ccsn.org.cn/newweb/api/StandardQuery.assx/queryStandard';
+            try {
+                const formData = new URLSearchParams();
+                formData.append('gjz', keyword);
+                formData.append('pageIndex', '1');
+                formData.append('pageSize', '10');
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+                    body: formData,
+                    signal: abortController?.signal
+                });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const data = await response.json();
+                let results = parseSite3JSON(data, keyword);
+                results = deduplicateResults(results);
+                return updateMatchStatus(results, keyword);
+            } catch (error) { throw error; }
+        }
+
+        // 更新匹配状态
+        function updateMatchStatus(results, keyword) {
+            results.forEach(result => {
+                result.isExactMatch = getExactMatchType(keyword, result);
+                result.match = result.isExactMatch ? '●' : '○';
+            });
+            return results;
+        }
     </script>
 </body>
 </html>
