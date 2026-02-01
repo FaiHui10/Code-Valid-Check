@@ -109,7 +109,7 @@
                 <div class="section-title">📌 注意事项</div>
                 <div class="instructions">
                     <p><strong>使用说明：</strong></p> 
-                    <p>1. 本网页可多网站并发查询规范版本的有效性，用户勾选下方网站进行查询。</p>
+                    <p>1. 本网页可多网站并发查询规范版本的有效性，用户勾选下方网站进行查询，一般选择<strong>第三个网站查询即可。</strong></p>
                     <p>2. <strong>双击下列</strong>网站区域，可在新窗口直接访问其官网。</p>
                     <p>3. 对于每个关键词，每个网站最多返回10条结果，如果没有搜索到结果，用户自行查核。</p>
                     <p>4. 地标、协会标之类的建议用户自行查核。</p>
@@ -143,7 +143,7 @@
             </div>
 
             <div class="section">
-                <div class="section-title">⌨️ 输入查询关键词</div>
+                <div class="section-title">⌨️ 输入查询关键词，分行或逗号分隔</div>
                 <textarea id="keywordInput" placeholder="请输入关键词，多个关键词用逗号、分号或换行分隔&#10;支持双向智能拆分：&#10;1. 编号在后：建筑结构荷载规范 GB 50009-2012 → 拆分为编号和名称&#10;2. 编号在前：JGJ/T235-2011 建筑外墙防水工程技术规程 → 拆分为编号和名称&#10;3. 序号清理：（1）建筑结构荷载规范 GB 50009-2021&#10;4. 书名号清理：《建筑设计防火规范》GB 50016&#10;5. 支持无空格代号：GB55019-2021&#10;6. 支持带/T规范：JGJ/T235-2011、DBJ/T15-19&#10;7. 支持地方标准：DBJ15-133-2018&#10;8. 支持带括号规范：组合结构设计规范(JGJ133-2016（即使括号不完整也能正确拆分）&#10;9. 支持版本信息：建筑结构荷载规范(2018版)、GB 50009-2012(2022年版)">JGJ/T235-2011 建筑外墙防水工程技术规程</textarea>
             </div>
 
@@ -161,10 +161,10 @@
             </div>
 
             <div class="section">
-                <div class="section-title">📊 查询结果(匹配状态中绿点表示完全匹配，黄点表示不完全匹配) <span style="font-weight:normal; margin-left:10px; color:#666;" id="resultsCount">共 0 条结果</span></div>
+                <div class="section-title">📊 查询结果(匹配状态中绿点表示完全匹配，黄点表示不完全匹配，字体加粗表示规范代号、名称完全匹配) <span style="font-weight:normal; margin-left:10px; color:#666;" id="resultsCount">共 0 条结果</span></div>
                 <div id="noExactMatchSummary" class="summary-box" style="display:none;">
-                    <strong>⚠️ 以下关键词未找到精确匹配：</strong>
-                    <span id="noExactMatchList"></span>
+                    <strong><span style="color: #dc3545;">⚠️ 以下关键词未找到精确匹配，应核对规范名称和代号，再次查找核实后调整出图文件：</span></strong>
+                    <p><strong><span id="noExactMatchList"></span></strong></p>
                 </div>
                 <table class="results-table" id="resultsTable">
                     <thead>
@@ -471,41 +471,34 @@
             
             // 情况3：关键词是组合形式（包含代号和名称）
             if (code && name) {
-                const kwContainsCode = kw.includes(code) || code.includes(kw);
-                const kwContainsName = kw.includes(name) || name.includes(kw);
+                // 检查关键词是否严格包含代号和名称（使用精确匹配，不使用 includes）
+                const kwContainsCode = kw === code;
+                const kwContainsName = kw === name;
                 
-                if (kwContainsCode && kwContainsName) {
-                    const hasVersionInKeyword = kwVersion !== '';
-                    const hasVersionInResult = resultCodeVersion !== '' || resultNameVersion !== '';
+                // 如果关键词等于代号或名称，说明是单个关键词，不走组合逻辑
+                // 只有当关键词既不等于代号也不等于名称时，才考虑组合形式
+                if (!kwContainsCode && !kwContainsName) {
+                    // 检查关键词是否同时包含代号和名称（精确匹配，不使用 includes）
+                    const codeName = `${code} ${name}`.trim();
+                    const nameCode = `${name} ${code}`.trim();
+                    const kwContainsBoth = kw === codeName || kw === nameCode;
                     
-                    if (hasVersionInKeyword && hasVersionInResult) {
-                        const resultVersion = resultCodeVersion || resultNameVersion;
-                        if (kwVersion === resultVersion) {
-                            addLog(`完全匹配（含版本）：关键词"${keyword}" 同时包含代号"${result.code}"和名称"${result.name}"`, 'info');
+                    addLog(`检查组合关键词 "${keyword}" 是否匹配 "${codeName}" 或 "${nameCode}": ${kwContainsBoth}`, 'info');
+                    
+                    if (kwContainsBoth) {
+                        const hasVersionInKeyword = kwVersion !== '';
+                        const hasVersionInResult = resultCodeVersion !== '' || resultNameVersion !== '';
+                        
+                        if (hasVersionInKeyword && hasVersionInResult) {
+                            const resultVersion = resultCodeVersion || resultNameVersion;
+                            if (kwVersion === resultVersion) {
+                                addLog(`完全匹配（含版本）：关键词"${keyword}" 同时包含代号"${result.code}"和名称"${result.name}"`, 'info');
+                                return true;
+                            }
+                        } else if (!hasVersionInKeyword && !hasVersionInResult) {
+                            addLog(`完全匹配：关键词"${keyword}" 同时包含代号"${result.code}"和名称"${result.name}"`, 'info');
                             return true;
                         }
-                    } else if (!hasVersionInKeyword && !hasVersionInResult) {
-                        addLog(`完全匹配：关键词"${keyword}" 同时包含代号"${result.code}"和名称"${result.name}"`, 'info');
-                        return true;
-                    }
-                }
-                
-                const codeName = `${code} ${name}`.trim();
-                const nameCode = `${name} ${code}`.trim();
-                
-                if (kw === codeName || kw === nameCode) {
-                    const hasVersionInKeyword = kwVersion !== '';
-                    const hasVersionInResult = resultCodeVersion !== '' || resultNameVersion !== '';
-                    
-                    if (hasVersionInKeyword && hasVersionInResult) {
-                        const resultVersion = resultCodeVersion || resultNameVersion;
-                        if (kwVersion === resultVersion) {
-                            addLog(`完全匹配（含版本）：关键词"${keyword}" = 组合"${codeName}"`, 'info');
-                            return true;
-                        }
-                    } else if (!hasVersionInKeyword && !hasVersionInResult) {
-                        addLog(`完全匹配：关键词"${keyword}" = 组合"${codeName}"`, 'info');
-                        return true;
                     }
                 }
             }
@@ -514,7 +507,7 @@
         }
 
         // ==================== 多线并发查询函数（支持请求中止） ====================
-        async function searchKeywordConcurrently(keyword, index, total) {
+        async function searchKeywordConcurrently(keyword, originalKeyword, index, total) {
             if (searchCancelled) {
                 return { 
                     keyword, 
@@ -573,6 +566,8 @@
                     results.forEach(result => {
                         result.isExactMatch = getExactMatchType(keyword, result);
                         result.match = result.isExactMatch ? '●' : '○';
+                        // 保存原始关键词（组合关键词），用于合并逻辑
+                        result.originalKeyword = originalKeyword || keyword;
                     });
                     
                     // 每个网站内部进行现行版本优先过滤
@@ -610,6 +605,7 @@
             
             return {
                 keyword,
+                originalKeyword,
                 results: keywordResults,
                 hasExactMatch,
                 hasAnyResult,
@@ -636,6 +632,51 @@
         }
 
         // ==================== 改进的合并逻辑：基于原始关键词和规范分组 ====================
+        // 辅助函数：检查原始关键词是否由多个关键词组合而成
+        function isCombinedKeyword(originalKeyword) {
+            // 更灵活的组合关键词检测：包含空格的多个部分
+            const parts = originalKeyword.trim().split(/\s+/);
+            
+            // 如果只有一个部分，不是组合关键词
+            if (parts.length < 2) {
+                return false;
+            }
+            
+            // 检查是否包含标准代号模式（字母开头，包含数字和/或-）
+            const hasCodePattern = parts.some(part => /^[A-Z]{2,}(?:\/[A-Z]+)?[\w\-\/]+\d/.test(part));
+            
+            // 检查是否包含中文名称模式
+            const hasChinesePattern = parts.some(part => /[\u4e00-\u9fa5]/.test(part));
+            
+            // 如果同时包含代号模式和中文模式，认为是组合关键词
+            return hasCodePattern && hasChinesePattern;
+        }
+        
+        // 辅助函数：获取组合关键词中的拆分关键词列表
+        function getSplitKeywords(originalKeyword) {
+            if (!isCombinedKeyword(originalKeyword)) {
+                return [originalKeyword];
+            }
+            
+            const parts = originalKeyword.split(/\s+/).filter(p => p.trim());
+            return parts.length > 1 ? parts : [originalKeyword];
+        }
+
+        // 辅助函数：检查拆分关键词是否完全匹配规范结果
+        function checkSplitKeywordExactMatch(splitKeyword, code, name) {
+            const clean = (str) => {
+                if (!str) return '';
+                return str.toLowerCase().replace(/\s+/g, '').replace(/[：:，,。.;；\/\-]/g, '');
+            };
+            
+            const cleanKeyword = clean(splitKeyword);
+            const cleanCode = clean(code);
+            const cleanName = clean(name);
+            
+            // 检查是否完全匹配代号或名称
+            return cleanKeyword === cleanCode || cleanKeyword === cleanName;
+        }
+
 		function mergeExactMatchResults(results) {
 			// 第一步：按原始关键词和规范进行分组
 			const originalStandardMap = new Map();
@@ -692,11 +733,117 @@
 				stats.totalMatches += group.exactMatches.length;
 			});
 			
-			// 第三步：找出可以合并的原始关键词（同一个原始关键词匹配同一个规范）
+			// 第三步：检查每个原始关键词的拆分是否都完全匹配了
+			// 逻辑：对于组合关键词，拆分后的每个关键词必须与结果的规范代号或规范名称完全匹配
+			const splitKeywordsExactMatchStatus = new Map();
+			
+			// 首先，统计每个拆分关键词是否找到了完全匹配的结果
+			// 关键：检查拆分关键词本身是否完全匹配了某个结果的代号或名称
+			const splitKeywordMatchMap = new Map();
+			results.forEach(result => {
+				const clean = (str) => {
+					if (!str) return '';
+					return str.toLowerCase().replace(/\s+/g, '').replace(/[：:，,。.;；\/\-]/g, '');
+				};
+				
+				const cleanCode = clean(result.code);
+				const cleanName = clean(result.name);
+				
+				// 检查拆分关键词是否完全匹配了这个结果的代号或名称
+				const splitKeywords = getSplitKeywords(result.originalKeyword || result.keyword);
+				splitKeywords.forEach(splitKw => {
+					const cleanSplitKw = clean(splitKw);
+					
+					// 检查拆分关键词是否完全匹配代号或名称
+					const isExactMatchForSplit = (cleanSplitKw === cleanCode) || (cleanSplitKw === cleanName);
+					
+					addLog(`检查拆分关键词 "${splitKw}" (clean="${cleanSplitKw}") 是否匹配 结果代号="${cleanCode}" 或 结果名称="${cleanName}": ${isExactMatchForSplit}`, 'info');
+					
+					if (isExactMatchForSplit) {
+						if (!splitKeywordMatchMap.has(splitKw)) {
+							splitKeywordMatchMap.set(splitKw, new Set());
+						}
+						splitKeywordMatchMap.get(splitKw).add(result.code);
+					}
+				});
+			});
+			
+			// 添加调试日志
+			addLog(`splitKeywordMatchMap 内容:`, 'info');
+			splitKeywordMatchMap.forEach((codes, splitKw) => {
+				addLog(`  "${splitKw}" → [${Array.from(codes).join(', ')}]`, 'info');
+			});
+			
+			// 然后，检查每个原始关键词的所有拆分是否都有完全匹配
+			// 收集所有唯一的原始关键词
+			const allOriginalKeywords = new Set();
+			results.forEach(result => {
+				allOriginalKeywords.add(result.originalKeyword || result.keyword);
+			});
+			
+			// 遍历每个原始关键词，检查其所有拆分是否都有完全匹配
+			allOriginalKeywords.forEach(originalKeyword => {
+				const splitKeywords = getSplitKeywords(originalKeyword);
+				
+				if (!splitKeywordsExactMatchStatus.has(originalKeyword)) {
+					splitKeywordsExactMatchStatus.set(originalKeyword, {
+						splitKeywords: splitKeywords,
+						allMatched: true,
+						matchedKeywords: new Set(),
+						unmatchedKeywords: new Set()
+					});
+				}
+				
+				const status = splitKeywordsExactMatchStatus.get(originalKeyword);
+				
+				// 对于每个拆分关键词，检查是否在结果中完全匹配
+				splitKeywords.forEach(splitKw => {
+					const matchedCodes = splitKeywordMatchMap.get(splitKw);
+					// 如果这个拆分关键词没有完全匹配任何结果，则标记为未匹配
+					if (!matchedCodes || matchedCodes.size === 0) {
+						status.allMatched = false;
+						status.unmatchedKeywords.add(splitKw);
+					} else {
+						status.matchedKeywords.add(splitKw);
+					}
+				});
+				
+				// 添加调试日志
+				if (isCombinedKeyword(originalKeyword)) {
+					addLog(`检查组合关键词 "${originalKeyword}": 拆分=[${splitKeywords.join(', ')}], 已匹配=[${Array.from(status.matchedKeywords).join(', ')}], 未匹配=[${Array.from(status.unmatchedKeywords).join(', ')}], allMatched=${status.allMatched}`, 'info');
+				}
+			});
+			
+			// 第四步：找出可以合并的原始关键词（同一个原始关键词匹配同一个规范）
 			const mergedResults = [];
 			const processedExactMatches = new Set();
 			
 			originalStats.forEach((stats, originalKeyword) => {
+				// 如果是组合关键词，检查所有拆分是否都完全匹配
+				const splitStatus = splitKeywordsExactMatchStatus.get(originalKeyword);
+				const isCombined = isCombinedKeyword(originalKeyword);
+				
+				addLog(`处理原始关键词 "${originalKeyword}": isCombined=${isCombined}, standards.size=${stats.standards.size}, allMatched=${splitStatus?.allMatched}`, 'info');
+				
+				// 如果是组合关键词且不是所有拆分都完全匹配，则不允许合并
+				if (isCombined && splitStatus && !splitStatus.allMatched) {
+					addLog(`ℹ️ 组合关键词 "${originalKeyword}" 的拆分未全部完全匹配（已匹配: ${Array.from(splitStatus.matchedKeywords).join(', ')}，未匹配: ${Array.from(splitStatus.unmatchedKeywords).join(', ')}），不合并`, 'info');
+					
+					// 将所有完全匹配的结果单独添加
+					originalStandardMap.forEach((group, combinedKey) => {
+						if (group.originalKeyword === originalKeyword) {
+							group.exactMatches.forEach(match => {
+								if (!processedExactMatches.has(match)) {
+									match.isMerged = false;
+									mergedResults.push(match);
+									processedExactMatches.add(match);
+								}
+							});
+						}
+					});
+					return;
+				}
+				
 				// 如果一个原始关键词只有一个规范完全匹配，考虑合并
 				if (stats.standards.size === 1) {
 					// 找到这个原始关键词的所有匹配
@@ -806,7 +953,35 @@
 			const noResultRows = results.filter(r => r.isNoResult);
 			mergedResults.push(...noResultRows);
 			
-			return deduplicateResults(mergedResults);
+			// 第六步：合并相同规范的结果（代号和名称相同）
+			const finalResults = [];
+			const processedKeys = new Set();
+			
+			mergedResults.forEach(result => {
+				if (result.isNoResult) {
+					finalResults.push(result);
+					return;
+				}
+				
+				const key = `${result.code}|${result.name}`;
+				if (processedKeys.has(key)) {
+					// 找到已处理的相同规范，合并来源网站
+					const existingResult = finalResults.find(r => `${r.code}|${r.name}` === key);
+					if (existingResult) {
+						// 合并来源网站
+						const existingSites = existingResult.site.split(', ');
+						const newSites = result.site.split(', ');
+						const allSites = [...new Set([...existingSites, ...newSites])];
+						existingResult.site = allSites.join(', ');
+						addLog(`合并相同规范的来源网站: "${existingResult.code} ${existingResult.name}" - ${allSites.join(', ')}`, 'info');
+					}
+				} else {
+					processedKeys.add(key);
+					finalResults.push(result);
+				}
+			});
+			
+			return deduplicateResults(finalResults);
 		}
 
 		// ==================== 过滤与合并结果相关的部分匹配结果 ====================
@@ -1213,7 +1388,7 @@
                     
                     const batch = keywordInfos.slice(i, i + CONCURRENCY_LIMIT);
                     const batchPromises = batch.map((keywordInfo, batchIndex) => 
-                        searchKeywordConcurrently(keywordInfo.keyword, i + batchIndex, totalKeywords)
+                        searchKeywordConcurrently(keywordInfo.keyword, keywordInfo.original, i + batchIndex, totalKeywords)
                     );
                     
                     const batchResults = await Promise.all(batchPromises);
@@ -1934,4 +2109,3 @@
     </script>
 </body>
 </html>
-
