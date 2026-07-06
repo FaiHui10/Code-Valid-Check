@@ -1875,27 +1875,27 @@
         });
     </script>
     <script>
-        // 腾讯云SCF接口配置 - SCF只负责获取原始数据，前端负责解析
-        const SCF_CONFIG = {
-            // SCF API网关地址
-            'endpoint': 'https://1326674224-f0hil92o71.ap-guangzhou.tencentscf.com',
+        // 百度云服务器接口配置 - 代理请求获取原始数据，前端负责解析
+        const API_CONFIG = {
+            // 百度云服务器API地址
+            'endpoint': 'http://180.76.98.218/codecheck/search',
             
             // 请求超时时间（毫秒）
             'timeout': 30000,
             
-            // 各网站配置：true=使用SCF代理, false=直接请求
-            // 所有请求都通过SCF代理，避免跨域问题
+            // 各网站配置：true=使用代理, false=直接请求
+            // 所有请求都通过百度云代理，避免跨域问题
             'sites': {
-                'site1': true,        // 国家标准网站 - SCF代理
-                'site2_national': true, // 建筑标准网站(国家标准) - SCF代理
-                'site2_industry': true, // 建筑标准网站(行业标准) - SCF代理
-                'site3': true         // 工程建设标准化信息网 - SCF代理
+                'site1': true,        // 国家标准网站 - 代理
+                'site2_national': true, // 建筑标准网站(国家标准) - 代理
+                'site2_industry': true, // 建筑标准网站(行业标准) - 代理
+                'site3': true         // 工程建设标准化信息网 - 代理
             }
         };
 
         // 获取某个网站是否使用SCF代理
         function useScfProxy(site) {
-            return SCF_CONFIG.sites[site] === true;
+            return API_CONFIG.sites[site] === true;
         }
 
         // SCF接口请求函数 - 获取原始数据（带自动重试）
@@ -1904,7 +1904,7 @@
             
             for (let attempt = 1; attempt <= maxRetries; attempt++) {
                 try {
-                    const response = await fetch(SCF_CONFIG.endpoint, {
+                    const response = await fetch(API_CONFIG.endpoint, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
@@ -2109,3 +2109,4 @@
     </script>
 </body>
 </html>
+
